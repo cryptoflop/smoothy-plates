@@ -5,7 +5,7 @@ local SP = LibStub("AceAddon-3.0"):NewAddon("SmoothyPlates", "AceEvent-3.0", "Ac
 local EventHandler = {}
 
 --------------Global Variables----------------
-SP.currVersion = "4.4.0"
+SP.currVersion = "4.5.0"
 
 SP.EditorBackground = "Interface\\Addons\\SmoothyPlates\\Media\\TGA\\EditorBackground"
 SP.EDGE_TEX = "Interface\\Addons\\SmoothyPlates\\Media\\TGA\\border"
