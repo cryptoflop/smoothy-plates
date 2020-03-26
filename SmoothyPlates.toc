@@ -1,0 +1,33 @@
+## Interface: 80300
+## Title: SmoothyPlates by |cffff0020Vènomstrikè|r
+## Notes: Smoothy Plates :)
+## Author: Max David aka Vènomstrikè
+## Version: 3.0.3
+## SavedVariablesPerCharacter: SPDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceLocale-3.0\AceLocale-3.0.xml
+Libs\AceTimer-3.0\AceTimer-3.0.xml
+Libs\AceSerializer-3.0\AceSerializer-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\LibSharedMedia-3.0\lib.xml
+Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+Libs\LibSmoothStatusBar-1.0\LibSmoothStatusBar-1.0.lua
+Libs\LibCC-1.0\LibCC-1.0.lua
+Libs\LibButtonGlow-1.0\LibButtonGlow-1.0.lua
+
+SmoothyPlates.lua
+config.lua
+
+Classes\SmoothyPlate.lua
+
+Modules\Silences.lua
+Modules\Stunns.lua
+Modules\Healers.lua
+Modules\Trinket.lua
+Modules\CastKick.lua

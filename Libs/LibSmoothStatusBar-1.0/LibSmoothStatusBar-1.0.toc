@@ -1,0 +1,21 @@
+## Interface: 60000
+## Title: Lib: SmoothStatusBar-1.0
+## Notes: Smoothly animates status bar
+## X-Curse-Packaged-Version: 1.2.4
+## X-Curse-Project-Name: LibSmoothStatusBar-1.0
+## X-Curse-Project-ID: libsmoothstatusbar-1-0
+## X-Curse-Repository-ID: wow/libsmoothstatusbar-1-0/mainline
+## X-Curse-Packaged-Version: r2.8
+## X-Curse-Project-Name: SmoothyPlates
+## X-Curse-Project-ID: smoothyplates
+## X-Curse-Repository-ID: wow/smoothyplates/mainline
+## X-Curse-Packaged-Version: r3.0
+## X-Curse-Project-Name: SmoothyPlates
+## X-Curse-Project-ID: smoothyplates
+## X-Curse-Repository-ID: wow/smoothyplates/mainline
+## X-Curse-Packaged-Version: r3.1
+## X-Curse-Project-Name: SmoothyPlates
+## X-Curse-Project-ID: smoothyplates
+## X-Curse-Repository-ID: wow/smoothyplates/mainline
+
+LibSmoothStatusBar-1.0.xml
