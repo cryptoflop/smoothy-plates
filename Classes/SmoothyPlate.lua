@@ -138,7 +138,7 @@ function SmoothyPlate:ConstructElement_PowerBar(parent)
     local frameP = CreateFrame("Frame", "$parentPowerBar", parent)
     local w, h = SP:layoutHW("POWER")
 
-    frameP.bar = CreateFrame("StatusBar", "$parentPowerBar", parent)
+    frameP.bar = CreateFrame("StatusBar", nil, frameP)
 	frameP.bar:SetStatusBarTexture(SP.BAR_TEX)
     frameP.bar:GetStatusBarTexture():SetHorizTile(false)
     frameP.bar:SetSize(w - 2, h - 2)
