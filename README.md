@@ -1,3 +1,3 @@
 # SmoothyPlates
 
-Simple, Helpful, highly customizable and smooth looking nameplates.
+Simple, helpful and highly customizable and smooth looking nameplates.
