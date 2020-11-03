@@ -99,7 +99,7 @@ end
 
 function SmoothyPlate:ConstructElement_HealthBar(parent)
 
-    local frameH = CreateFrame("Frame", "$parentHealthBar", parent)
+    local frameH = CreateFrame("Frame", "$parentHealthBar", parent, BackdropTemplateMixin and "BackdropTemplate")
     local w, h = SP:layoutHW("HEALTH");
 
     SP:AddBorder(frameH)
@@ -123,7 +123,7 @@ function SmoothyPlate:ConstructElement_HealthBar(parent)
     frameH.pc:SetText("70%")
     frameH.pc:SetAlpha(SP:layout("HEALTH_TEXT", "opacity"))
 
-    frameH.back = CreateFrame("Frame", "$parentBack", frameH)
+    frameH.back = CreateFrame("Frame", "$parentBack", frameH, BackdropTemplateMixin and "BackdropTemplate")
     frameH.back:SetSize(w, h)
     frameH.back:SetPoint("CENTER", 0, 0)
     frameH.back:SetBackdrop(SP.stdbdne)
@@ -135,7 +135,7 @@ function SmoothyPlate:ConstructElement_HealthBar(parent)
 end
 
 function SmoothyPlate:ConstructElement_PowerBar(parent)
-    local frameP = CreateFrame("Frame", "$parentPowerBar", parent)
+    local frameP = CreateFrame("Frame", "$parentPowerBar", parent, BackdropTemplateMixin and "BackdropTemplate")
     local w, h = SP:layoutHW("POWER")
 
     frameP.bar = CreateFrame("StatusBar", nil, frameP)
@@ -146,7 +146,7 @@ function SmoothyPlate:ConstructElement_PowerBar(parent)
     frameP.bar:SetStatusBarColor(0.9,0.9,0.1,1)
 	self:Smooth(frameP.bar)
 
-    frameP.back = CreateFrame("Frame", "$parentBack", frameP)
+    frameP.back = CreateFrame("Frame", "$parentBack", frameP, BackdropTemplateMixin and "BackdropTemplate")
     frameP.back:SetSize(w, h)
     frameP.back:SetPoint("CENTER", 0, 0)
     frameP.back:SetBackdrop(SP.stdbdne)
@@ -166,7 +166,7 @@ end
 
 function SmoothyPlate:ConstructElement_CastBar(parent)
 
-    local frameC = CreateFrame("Frame", "$parentCastBar", parent)
+    local frameC = CreateFrame("Frame", "$parentCastBar", parent, BackdropTemplateMixin and "BackdropTemplate")
     local w, h = SP:layoutHW("CAST");
 
     SP:AddBorder(frameC)
@@ -233,7 +233,7 @@ end
 
 function SmoothyPlate:ConstructElement_PredSpark(parent)
 
-    local framePS = CreateFrame("Frame", nil, parent)
+    local framePS = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
     framePS:SetSize(3, SP:layout("HEALTH", "height"))
     framePS:SetPoint("RIGHT", parent.HealthBar, 2, 0)
     framePS:SetBackdrop(SP.stdbd)

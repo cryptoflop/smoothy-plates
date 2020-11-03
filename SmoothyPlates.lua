@@ -5,7 +5,7 @@ local SP = LibStub("AceAddon-3.0"):NewAddon("SmoothyPlates", "AceEvent-3.0", "Ac
 local EventHandler = {}
 
 --------------Global Variables----------------
-SP.currVersion = "4.5.1"
+SP.currVersion = "5.0.0"
 
 SP.EditorBackground = "Interface\\Addons\\SmoothyPlates\\Media\\TGA\\EditorBackground"
 SP.EDGE_TEX = "Interface\\Addons\\SmoothyPlates\\Media\\TGA\\border"
@@ -56,25 +56,25 @@ end
 
 function SP:AddSingleBorders(parent, r, g, b, a)
 	local size = 1;
-	parent.l = CreateFrame("Frame", nil, parent)
+	parent.l = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 	parent.l:SetSize(size, parent:GetHeight())
 	parent.l:SetPoint("LEFT", 0, 0)
 	parent.l:SetBackdrop(SP.stdbd)
     parent.l:SetBackdropColor(r,g,b,a)
 
-	parent.r = CreateFrame("Frame", nil, parent)
+	parent.r = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 	parent.r:SetSize(size, parent:GetHeight())
 	parent.r:SetPoint("RIGHT", 0, 0)
 	parent.r:SetBackdrop(SP.stdbd)
     parent.r:SetBackdropColor(r,g,b,a)
 
-	parent.t = CreateFrame("Frame", nil, parent)
+	parent.t = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 	parent.t:SetSize(parent:GetWidth(), size)
 	parent.t:SetPoint("TOP", 0, 0)
 	parent.t:SetBackdrop(SP.stdbd)
     parent.t:SetBackdropColor(r,g,b,a)
 
-	parent.b = CreateFrame("Frame", nil, parent)
+	parent.b = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 	parent.b:SetSize(parent:GetWidth(), size)
 	parent.b:SetPoint("BOTTOM", 0, 0)
 	parent.b:SetBackdrop(SP.stdbd)
@@ -82,7 +82,7 @@ function SP:AddSingleBorders(parent, r, g, b, a)
 end
 
 function SP:CreateTextureFrame(parent, w, h, a, x, y, alpha, defText, dx, dy, dw, dh)
-	parent.textureBack = CreateFrame("Frame", nil, parent)
+	parent.textureBack = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 	parent.textureBack:SetSize(w, h)
 	parent.textureBack:SetPoint(a, x, y)
 	parent.textureBack:SetAlpha(alpha)
@@ -156,7 +156,7 @@ function SP:StartUp()
 		EventHandler:RegisterEvent(eventName)
 	end
 
-	self:RegisterEvent("NAME_PLATE_CREATED");
+	-- self:RegisterEvent("NAME_PLATE_CREATED");
 	self:RegisterEvent("NAME_PLATE_UNIT_ADDED");
 	self:RegisterEvent("NAME_PLATE_UNIT_REMOVED");
 	--self:RegisterEvent("PLAYER_TARGET_CHANGED");
@@ -271,7 +271,7 @@ function SP:CreateOptionFrame()
 		scrollFrame:SetHeight(330)
 
 		for key, category in pairs(SP.dbo) do
-			if category.canfigurable then
+			if category.configurable then
 				local categoryGroup = aceGui:Create("InlineGroup")
 				categoryGroup:SetTitle(category.displayName)
 
@@ -321,7 +321,7 @@ local anchorList = { TOP = "TOP", BOTTOM = "BOTTOM", CENTER = "CENTER", LEFT = "
 function SP:ShowLayoutGUI()
 	lastLayout = ShallowCopy(SP.dbo.layout)
 
-	local editorFrame = CreateFrame("Frame", "fakePlateEditor", UIParent)
+	local editorFrame = CreateFrame("Frame", "fakePlateEditor", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	editorFrame:SetSize(456, 480)
 	editorFrame:SetPoint("CENTER", 0, 0)
 	editorFrame:SetBackdrop({
@@ -338,7 +338,7 @@ function SP:ShowLayoutGUI()
 	Portrait:SetSize(70, 70)
 	Portrait:SetUnit("player")
 
-	local bottomContainer = CreateFrame("Frame", "$bottomContainer", editorFrame)
+	local bottomContainer = CreateFrame("Frame", "$bottomContainer", editorFrame, BackdropTemplateMixin and "BackdropTemplate")
 	bottomContainer:SetSize(440, 130)
 	bottomContainer:SetPoint("BOTTOM", 0, 8)
 	bottomContainer:SetBackdrop(SP.stdbd)
@@ -563,18 +563,21 @@ local PlateStorage = {}
 
 function BypassFunction() return true end
 
-function SP:NAME_PLATE_CREATED(event, plate)
-	local blizzFrame = plate:GetChildren();
-
-	blizzFrame._Show = blizzFrame.Show
-	blizzFrame.Show = BypassFunction
-
-	SmoothyPlate(plate);
-	self.callbacks:Fire("AFTER_SP_CREATION", plate)
-end
+-- function SP:NAME_PLATE_CREATED(event, plate)
+	-- blizz frame does not exists at this point
+-- end
 
 function SP:NAME_PLATE_UNIT_ADDED(event, unitid)
 	local plate = GetNamePlateForUnit(unitid);
+
+	local blizzFrame = plate.UnitFrame;
+
+	blizzFrame._Show = blizzFrame.Show
+	blizzFrame.Show = BypassFunction
+	blizzFrame:Hide();
+
+	SmoothyPlate(plate);
+	self.callbacks:Fire("AFTER_SP_CREATION", plate)
 
 	-- Personal Display
 	if event and UnitIsUnit("player", unitid) then
@@ -626,11 +629,6 @@ function EventHandler:UNIT_HEALTH(event, unitid)
 end
 
 function EventHandler:UNIT_MAXHEALTH(event, unitid)
-	self:UNIT_HEALTH(event, unitid)
-
-end
-
-function EventHandler:UNIT_HEALTH_FREQUENT(event, unitid)
 	self:UNIT_HEALTH(event, unitid)
 
 end
@@ -994,5 +992,29 @@ function TableToString(inTable)
 
 	return ret;
 end
+
+-- Print contents of `tbl`, with indentation.
+-- `indent` sets the initial level of indentation.
+_G.tprint = function(tbl, indent)
+	if not indent then indent = 0 end
+	local count = 0;
+	for k, v in pairs(tbl) do
+	  count = count + 1;
+	  formatting = string.rep("  ", indent) .. k .. ": "
+	  if type(v) == "table" then
+		print(formatting)
+		tprint(v, indent+1)
+	  elseif type(v) == 'boolean' then
+		print(formatting .. tostring(v))		
+	  elseif type(v) == 'function' then
+		print(formatting .. '[FUNCTION REF]')	
+	  elseif type(v) == 'userdata' then
+		print(formatting .. '[USERDATA REF]')	
+	  else
+		print(formatting .. v)
+	  end
+	end
+	if count == 0 then print(string.rep("  ", indent) .. '[EMPTY]'); end
+  end
 
 ----------------------------------------------

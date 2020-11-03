@@ -4,7 +4,7 @@ function SP:getDefaultConfig()
     return {
         ["version"] = SP.currVersion,
         ["modules"] = {
-            ["canfigurable"] = true,
+            ["configurable"] = true,
             ["options"] = {
                 ["CastKick"] = {
                     ["value"] = true,
@@ -35,7 +35,7 @@ function SP:getDefaultConfig()
             ["displayName"] = "Modules",
         },
         ["layout"] = {
-            ["canfigurable"] = false,
+            ["configurable"] = false,
             ["options"] = {
                 ["LAYOUT_CAST_TEXT"] = {
                     ["value"] = {
@@ -161,10 +161,10 @@ function SP:getDefaultConfig()
                         ["y"] = -4,
                         ["x"] = 0,
                         ["hide border"] = "t",
-                        ["height"] = 4,
                         ["anchor"] = "BOTTOM",
-                        ["opacity"] = 1,
                         ["parent"] = "HealthBar",
+                        ["opacity"] = 1,
+                        ["height"] = 4,
                         ["width"] = 120,
                     },
                     ["displayName"] = "Power",
@@ -197,7 +197,7 @@ function SP:getDefaultConfig()
             ["displayName"] = "Layout",
         },
         ["media"] = {
-            ["canfigurable"] = true,
+            ["configurable"] = true,
             ["options"] = {
                 ["FONT"] = {
                     ["value"] = "Designosaur Regular",
@@ -219,3 +219,5 @@ function SP:getDefaultConfig()
         }
     };
 end
+
+
