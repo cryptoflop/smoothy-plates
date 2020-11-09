@@ -1,5 +1,5 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local SPLS = SP:NewModule("Specials", "AceEvent-3.0")
+local SP = SmoothyPlates
+local SPLS = SP.Addon:NewModule("Specials", "AceEvent-3.0")
 
 -- Specials Module for SmoothyPlates
 -- Shows important CD's of enemy players and hooks it to the target plate

@@ -1,29 +1,28 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local Silences = SP:NewModule("Silences")
+local SP = SmoothyPlates
+local Utils = SP.Utils
+local Silences = SP.Addon:NewModule("Silences")
 
 local activeSilences = {}
 local UnitGUID = UnitGUID
 local GetTime = GetTime
 local GetSpellInfo = GetSpellInfo
+local getPlateByGUID = SP.Nameplates.getPlateByGUID
 
 local InterruptTexture
 
 function Silences:OnEnable()
-
     InterruptTexture = GetSpellTexture(47528)
 
-    SP.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_SilenceFrame")
-    SP.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_CAST_START", "UNIT_CAST_START")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_CHANNEL_START", "UNIT_CAST_START")
-    SP.RegisterCallback(self, "SP_PLAYER_ENTERING_WORLD")
-
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_SilenceFrame")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_CAST_START", "UNIT_CAST_START")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_CHANNEL_START", "UNIT_CAST_START")
+    SP.callbacks.RegisterCallback(self, "SP_PLAYER_ENTERING_WORLD")
 
     self.cc = LibStub("LibCC-1.0")
     self.cc.RegisterCallback(self, "ENEMY_SILENCE")
     self.cc.RegisterCallback(self, "ENEMY_SILENCE_FADED")
-
 end
 
 function Silences:SP_PLAYER_ENTERING_WORLD()
@@ -33,17 +32,17 @@ end
 function Silences:CreateElement_SilenceFrame(event, plate)
     local sp = plate.SmoothyPlate.sp
 
-    local w, h = SP:layoutHW("SILENCE", self);
-    local a, p, x, y = SP:layoutAPXY("SILENCE", sp, self);
+    local w, h = SP.Layout.HW("SILENCE", self);
+    local a, p, x, y = SP.Layout.APXY("SILENCE", sp, self);
 
     sp.SilenceFrame = CreateFrame("Frame", nil, sp)
     sp.SilenceFrame:SetSize(w, h)
     sp.SilenceFrame:SetPoint(a, p, x, y)
 
-	SP:CreateTextureFrame(
+	Utils.createTextureFrame(
         sp.SilenceFrame,
         w, h, a, x, y,
-        SP:layout("SILENCE", "opacity", self),
+        SP.Layout.GET("SILENCE", "opacity", self),
         InterruptTexture
     );
 
@@ -53,7 +52,6 @@ function Silences:CreateElement_SilenceFrame(event, plate)
 
     plate.SmoothyPlate:registerFrame(sp.SilenceFrame, "SILENCE", self)
     sp.SilenceFrame:Hide()
-
 end
 
 function Silences:ENEMY_SILENCE(event, destGUID, sourceGUID, spellID)
@@ -69,11 +67,9 @@ function Silences:ENEMY_SILENCE(event, destGUID, sourceGUID, spellID)
     end
 
     self:ApplySilence(destGUID)
-
 end
 
 function Silences:ENEMY_SILENCE_FADED(event, destGUID, sourceGUID, spellID)
-
     if activeSilences[destGUID] and activeSilences[destGUID][spellID] then
         activeSilences[destGUID][spellID] = nil
     end
@@ -85,12 +81,13 @@ function Silences:ENEMY_SILENCE_FADED(event, destGUID, sourceGUID, spellID)
     end
 
     self:ApplySilence(destGUID)
-
 end
+
+local getUnitDebuffByName = Utils.getUnitDebuffByName
 
 function Silences:ApplySilence(guid, forceHide)
     local currSilence = activeSilences[guid]
-    local plate = SP:GetPlateByGUID(guid)
+    local plate = getPlateByGUID(guid)
 
     if currSilence and not forceHide then
         if plate then
@@ -103,7 +100,7 @@ function Silences:ApplySilence(guid, forceHide)
                         iconN, durationN, expiresNew, timeModN = InterruptTexture, 2.8, v, 1
                     else
                         local spellName = GetSpellInfo(k);
-                        _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN = SP:UnitDebuffByName(plate.SmoothyPlate.unitid, spellName)
+                        _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN = getUnitDebuffByName(plate.SmoothyPlate.unitid, spellName)
                     end
 
                     if expiresNew then -- to be safe if the stun-debuff does not exists on the unit (for whatever cases)
@@ -133,7 +130,6 @@ function Silences:ApplySilence(guid, forceHide)
             end
         end
     end
-
 end
 
 function Silences:UNIT_CAST_START(event, plate)

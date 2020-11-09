@@ -1,5 +1,6 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local Stunns = SP:NewModule("Stuns")
+local SP = SmoothyPlates
+local Utils = SP.Utils
+local Stunns = SP.Addon:NewModule("Stuns")
 
 local activeStunns = {}
 local UnitGUID = UnitGUID
@@ -7,10 +8,10 @@ local GetTime = GetTime
 local GetSpellInfo = GetSpellInfo
 
 function Stunns:OnEnable()
-    SP.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_StunnFrame")
-    SP.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
-    SP.RegisterCallback(self, "SP_PLAYER_ENTERING_WORLD")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_StunnFrame")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
+    SP.callbacks.RegisterCallback(self, "SP_PLAYER_ENTERING_WORLD")
 
     self.cc = LibStub("LibCC-1.0")
     self.cc.RegisterCallback(self, "ENEMY_STUN")
@@ -21,18 +22,18 @@ function Stunns:SP_PLAYER_ENTERING_WORLD()
     activeStunns = {} -- dont forget to clean up, kids
 end
 
-function Stunns:CreateElement_StunnFrame(event, plate)   
+function Stunns:CreateElement_StunnFrame(event, plate)
     local sp = plate.SmoothyPlate.sp
 
-    local w, h = SP:layoutHW("STUN", self)
-    local a, p, x, y = SP:layoutAPXY("STUN", sp, self)
+    local w, h = SP.Layout.HW("STUN", self)
+    local a, p, x, y = SP.Layout.APXY("STUN", sp, self)
     local tex = GetSpellTexture(1833)
 
     sp.StunnFrame = CreateFrame("Frame", nil, sp)
     sp.StunnFrame:SetSize(w, h)
     sp.StunnFrame:SetPoint(a, p, x, y)
 
-    SP:CreateTextureFrame(sp.StunnFrame, w, h, a, x, y, SP:layout("STUN", "opacity", self), tex)
+    Utils.createTextureFrame(sp.StunnFrame, w, h, a, x, y, SP.Layout.GET("STUN", "opacity", self), tex)
 
     sp.StunnFrame.cd = CreateFrame("Cooldown", nil, sp.StunnFrame.textureBack, "CooldownFrameTemplate")
     sp.StunnFrame.cd:SetAllPoints()
@@ -69,9 +70,12 @@ function Stunns:ENEMY_STUN_FADED(event, destGUID, sourceGUID, spellID)
     self:ApplyStun(destGUID)
 end
 
+local getPlateByGUID = SP.Nameplates.getPlateByGUID
+local getUnitDebuffByName = Utils.getUnitDebuffByName
+
 function Stunns:ApplyStun(guid, forceHide)
     local currStunn = activeStunns[guid]
-    local plate = SP:GetPlateByGUID(guid)
+    local plate = getPlateByGUID(guid)
 
     if currStunn and not forceHide then
         if plate then
@@ -81,7 +85,7 @@ function Stunns:ApplyStun(guid, forceHide)
                 if v then
                     local spellName = GetSpellInfo(k)
                     _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN =
-                        SP:UnitDebuffByName(plate.SmoothyPlate.unitid, spellName)
+                        getUnitDebuffByName(plate.SmoothyPlate.unitid, spellName)
                     if expiresNew then -- to be safe if the stun-debuff does not exists on the unit (for whatever reasons)
                         local exNew = (expiresNew - GetTime()) / timeModN
                         if exNew > expires then

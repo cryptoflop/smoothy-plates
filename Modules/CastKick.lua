@@ -1,19 +1,19 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local CastKick = SP:NewModule("CastKick", "AceTimer-3.0", "AceEvent-3.0")
+local SP = SmoothyPlates
+local Utils = SP.Utils
+local CastKick = SP.Addon:NewModule("CastKick", "AceTimer-3.0", "AceEvent-3.0")
 
 local LibOverlayGlow = LibStub("LibButtonGlow-1.0");
 
 function CastKick:OnEnable()
     InterruptTexture = GetSpellTexture(47528)
 
-    SP.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_KickIcon")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_KickIcon")
 
-    SP.RegisterCallback(self, "SP_UNIT_CAST_UPDATE", 'CHECK_FORWARDS')
-    SP.RegisterCallback(self, "SP_UNIT_CHANNEL_UPDATE", 'CHECK_BACKWARDS')
-    SP.RegisterCallback(self, "SP_UNIT_SPELLCAST_STOP", 'ON_CAST_STOP')
+    SP.callbacks.RegisterCallback(self, "SP_UNIT_CAST_UPDATE", 'CHECK_FORWARDS')
+    SP.callbacks.RegisterCallback(self, "SP_UNIT_CHANNEL_UPDATE", 'CHECK_BACKWARDS')
+    SP.callbacks.RegisterCallback(self, "SP_UNIT_SPELLCAST_STOP", 'ON_CAST_STOP')
 
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
-    
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
 end
 
 function CastKick:CHECK_FORWARDS(event, plate, startTime, endTime, currTime, notInterruptible)
@@ -63,23 +63,23 @@ function CastKick:ON_CAST_STOP(event, plate)
 end
 
 function layout(property)
-    return SP.dbo.layout.LAYOUT_CASTKICK_KICK_ALERT[property];
+    return SP.db.layout.LAYOUT_CASTKICK_KICK_ALERT[property];
 end
 
 function CastKick:CreateElement_KickIcon(event, plate)
     local sp = plate.SmoothyPlate.sp
 
-    local w, h = SP:layoutHW("KICK_ALERT", self);
-    local a, p, x, y = SP:layoutAPXY("KICK_ALERT", sp, self);
+    local w, h = SP.Layout.HW("KICK_ALERT", self);
+    local a, p, x, y = SP.Layout.APXY("KICK_ALERT", sp, self);
 
     sp.KickIcon = CreateFrame("Frame", nil, sp)
     sp.KickIcon:SetSize(w, h)
     sp.KickIcon:SetPoint(a, p, x, y)
 
-    SP:CreateTextureFrame(
+    Utils.createTextureFrame(
         sp.KickIcon,
         w, h, a, x, y,
-        SP:layout("KICK_ALERT", "opacity", self),
+        SP.Layout.GET("KICK_ALERT", "opacity", self),
         InterruptTexture
     );
 

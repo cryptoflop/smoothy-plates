@@ -1,5 +1,6 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local Healers = SP:NewModule("Healers", "AceEvent-3.0")
+local SP = SmoothyPlates
+local Utils = SP.Utils
+local Healers = SP.Addon:NewModule("Healers", "AceEvent-3.0")
 
 local healerclasses = {
 	[65] = "Paladin: Holy",
@@ -66,14 +67,12 @@ local ONLY_HEALER_SPELLS = {
 };
 
 function Healers:OnEnable()
-
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-    SP.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_HealerIcon")
-    SP.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
-
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_HealerIcon")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
 end
 
 local healerGUIDs = {}
@@ -81,30 +80,37 @@ local healerGUIDs = {}
 function Healers:CreateElement_HealerIcon(event, plate) 
     local sp = plate.SmoothyPlate.sp
 
-    local w, h = SP:layoutHW("HEALER_ICON", self);
-    local a, p, x, y = SP:layoutAPXY("HEALER_ICON", sp, self);
+    local w, h = SP.Layout.HW("HEALER_ICON", self);
+    local a, p, x, y = SP.Layout.APXY("HEALER_ICON", sp, self);
 
     sp.HealerIcon = CreateFrame("Frame", nil, sp)
+    sp.HealerIcon:SetFrameLevel(2)
     sp.HealerIcon:SetSize(w, h)
     sp.HealerIcon:SetPoint(a, p, x, y)
+    sp.HealerIcon:SetAlpha(SP.Layout.GET("HEALER_ICON", "opacity", self))
 
-	SP:CreateTextureFrame(
-        sp.HealerIcon,
-        w, h, a, x, y,
-        SP:layout("HEALER_ICON", "opacity", self),
-        SP.HEALER_ICON
-    );
+    sp.HealerIcon.textureBack = Utils.createSimpleFrame(nil, sp.HealerIcon, true)
+	sp.HealerIcon.textureBack:SetSize(w, h)
+	sp.HealerIcon.textureBack:SetPoint(a, x, y)
+
+    Utils.addBorder(sp.HealerIcon.textureBack)
+    sp.HealerIcon.textureBack:SetBackdropColor(0,0,0,0.4)
+
+    sp.HealerIcon.tex = sp.HealerIcon.textureBack:CreateTexture()
+	sp.HealerIcon.tex:SetTexture(SP.Vars.ui.textures.HEALER_ICON)
+    sp.HealerIcon.tex:SetAllPoints()
 
     plate.SmoothyPlate:registerFrame(sp.HealerIcon, "HEALER_ICON", self)
     sp.HealerIcon:Hide()
-
 end
 
 local UnitGUID = UnitGUID
+local getPlateByGUID = SP.Nameplates.getPlateByGUID
+
 function Healers:UNIT_ADDED(event, plate)
     local guid = UnitGUID(plate.SmoothyPlate.unitid)
     if healerGUIDs[guid] then
-        if SP:GetPlateByGUID(guid) then
+        if getPlateByGUID(guid) then
             plate.SmoothyPlate.sp.HealerIcon:Show()
         else
             plate.SmoothyPlate.sp.HealerIcon:Hide()
@@ -114,13 +120,10 @@ function Healers:UNIT_ADDED(event, plate)
 end
 
 function Healers:UNIT_REMOVED(event, plate)
-
     plate.SmoothyPlate.sp.HealerIcon:Hide()
-
 end
 
 function Healers:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool, auraType)
-
     if not CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or not spellID or not sourceGUID then return end
 
     if healerGUIDs[sourceGUID] then return end
@@ -129,11 +132,10 @@ function Healers:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCa
         healerGUIDs[sourceGUID] = true;
     else return end
 
-    local plate = SP:GetPlateByGUID(sourceGUID)
+    local plate = getPlateByGUID(sourceGUID)
     if plate then
         plate.SmoothyPlate.sp.HealerIcon:Show()
     end
-
 end
 
 function Healers:PLAYER_ENTERING_WORLD()
@@ -141,7 +143,6 @@ function Healers:PLAYER_ENTERING_WORLD()
 end
 
 function Healers:isHealer(specId)
-
 	if not specId then return false end
 
 	if not healerclasses[specId] then
@@ -149,5 +150,4 @@ function Healers:isHealer(specId)
 	else
 		return true
 	end
-
 end

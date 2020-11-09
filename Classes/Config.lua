@@ -1,10 +1,9 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-
-function SP:getDefaultConfig()
+SmoothyPlates.getDefaultConfig = function()
     return {
-        ["version"] = SP.currVersion,
+        ["version"] = SmoothyPlates.Vars.currVersion,
+
         ["modules"] = {
-            ["configurable"] = true,
+            ["displayName"] = "Modules",
             ["options"] = {
                 ["CastKick"] = {
                     ["value"] = true,
@@ -21,19 +20,20 @@ function SP:getDefaultConfig()
                     ["type"] = "BOOL",
                     ["displayName"] = "Trinket",
                 },
-                ["Healers"] = {
-                    ["value"] = false,
-                    ["type"] = "BOOL",
-                    ["displayName"] = "Arena Healers",
-                },
                 ["Silences"] = {
                     ["value"] = true,
                     ["type"] = "BOOL",
                     ["displayName"] = "Silences",
                 },
+                ["Healers"] = {
+                    ["value"] = true,
+                    ["type"] = "BOOL",
+                    ["displayName"] = "Arena Healers",
+                },
             },
-            ["displayName"] = "Modules",
+            ["configurable"] = true,
         },
+
         ["layout"] = {
             ["configurable"] = false,
             ["options"] = {
@@ -49,7 +49,7 @@ function SP:getDefaultConfig()
                 },
                 ["LAYOUT_GENERAL"] = {
                     ["value"] = {
-                        ["scale"] = 1.4,
+                        ["scale"] = 1,
                     },
                     ["displayName"] = "General",
                 },
@@ -66,7 +66,7 @@ function SP:getDefaultConfig()
                 },
                 ["LAYOUT_HEALTH_TEXT"] = {
                     ["value"] = {
-                        ["y"] = 0,
+                        ["y"] = -1,
                         ["x"] = 0,
                         ["anchor"] = "CENTER",
                         ["opacity"] = 1,
@@ -74,17 +74,16 @@ function SP:getDefaultConfig()
                     },
                     ["displayName"] = "Health Text",
                 },
-                ["LAYOUT_CAST"] = {
+                ["LAYOUT_NAME"] = {
                     ["value"] = {
-                        ["y"] = -26,
+                        ["y"] = 14,
                         ["x"] = 0,
-                        ["height"] = 24,
-                        ["anchor"] = "BOTTOM",
+                        ["anchor"] = "TOP",
                         ["opacity"] = 1,
-                        ["parent"] = "PowerBar",
-                        ["width"] = 120,
+                        ["parent"] = "HealthBar",
+                        ["size"] = 12,
                     },
-                    ["displayName"] = "Cast Bar",
+                    ["displayName"] = "Name",
                 },
                 ["LAYOUT_CAST_ICON"] = {
                     ["value"] = {
@@ -99,26 +98,27 @@ function SP:getDefaultConfig()
                 },
                 ["LAYOUT_HEALERS_HEALER_ICON"] = {
                     ["value"] = {
-                        ["y"] = 22,
+                        ["y"] = 0,
                         ["x"] = 0,
                         ["height"] = 20,
-                        ["anchor"] = "TOPLEFT",
+                        ["anchor"] = "TOPRIGHT",
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
                         ["width"] = 20,
                     },
                     ["displayName"] = "Healer Icon",
                 },
-                ["LAYOUT_NAME"] = {
+                ["LAYOUT_CAST"] = {
                     ["value"] = {
-                        ["y"] = 14,
+                        ["y"] = -26,
                         ["x"] = 0,
-                        ["anchor"] = "TOP",
+                        ["height"] = 24,
+                        ["anchor"] = "BOTTOM",
                         ["opacity"] = 1,
-                        ["parent"] = "HealthBar",
-                        ["size"] = 12,
+                        ["parent"] = "PowerBar",
+                        ["width"] = 120,
                     },
-                    ["displayName"] = "Name",
+                    ["displayName"] = "Cast Bar",
                 },
                 ["LAYOUT_TRINKET_TRINKET"] = {
                     ["value"] = {
@@ -159,8 +159,8 @@ function SP:getDefaultConfig()
                 ["LAYOUT_POWER"] = {
                     ["value"] = {
                         ["y"] = -4,
-                        ["x"] = 0,
                         ["hide border"] = "t",
+                        ["x"] = 0,
                         ["anchor"] = "BOTTOM",
                         ["parent"] = "HealthBar",
                         ["opacity"] = 1,
@@ -196,8 +196,9 @@ function SP:getDefaultConfig()
             },
             ["displayName"] = "Layout",
         },
+
         ["media"] = {
-            ["configurable"] = true,
+            ["displayName"] = "Media",
             ["options"] = {
                 ["FONT"] = {
                     ["value"] = "Designosaur Regular",
@@ -215,7 +216,7 @@ function SP:getDefaultConfig()
                     ["displayName"] = "Prediction Bar",
                 },
             },
-            ["displayName"] = "Media",
+            ["configurable"] = true,
         }
     };
 end

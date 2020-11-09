@@ -1,5 +1,6 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-local Trinket = SP:NewModule("Trinket", "AceTimer-3.0", "AceEvent-3.0")
+local SP = SmoothyPlates
+local Utils = SP.Utils
+local Trinket = SP.Addon:NewModule("Trinket", "AceTimer-3.0", "AceEvent-3.0")
 
 local trinketSpellIDs = {
     [208683] = true,
@@ -13,30 +14,42 @@ local playerUsedTrinket = {}
 local TrinketTexture
 
 function Trinket:OnEnable()
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     TrinketTexture = GetSpellTexture(208683)
 
-    SP.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_TrinketIcon")
-    SP.RegisterCallback(self, "SP_ARENA_STATE_CHANGED")
-    SP.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
-    SP.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_TrinketIcon")
+    SP.callbacks.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
+    SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
+end
 
+local inArena = false
+function Trinket:PLAYER_ENTERING_WORLD()
+    if select(2, IsInInstance()) == "arena" then
+        inArena = true
+        self:ARENA_STATE_CHANGED(true)
+    else
+        if inArena then
+            inArena = false
+            self:ARENA_STATE_CHANGED(false)
+        end
+    end
 end
 
 function Trinket:CreateElement_TrinketIcon(event, plate)
     local sp = plate.SmoothyPlate.sp
 
-    local w, h = SP:layoutHW("TRINKET", self);
-    local a, p, x, y = SP:layoutAPXY("TRINKET", sp, self);
+    local w, h = SP.Layout.HW("TRINKET", self);
+    local a, p, x, y = SP.Layout.APXY("TRINKET", sp, self);
 
     sp.TrinketIcon = CreateFrame("Frame", nil, sp)
     sp.TrinketIcon:SetSize(w, h)
     sp.TrinketIcon:SetPoint(a, p, x, y)
 
-	SP:CreateTextureFrame(
+	Utils.createTextureFrame(
         sp.TrinketIcon,
         w, h, a, x, y,
-        SP:layout("TRINKET", "opacity", self),
+        SP.Layout.GET("TRINKET", "opacity", self),
         TrinketTexture
     );
 
@@ -49,21 +62,18 @@ function Trinket:CreateElement_TrinketIcon(event, plate)
 
 end
 
-local inArena = false
-function Trinket:SP_ARENA_STATE_CHANGED(event, isInArena)
+function Trinket:ARENA_STATE_CHANGED(isInArena)
     playerUsedTrinket = {}
-    inArena = isInArena
-    if inArena then
+    if isInArena then
         self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     else
         self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     end
 end
 
-
+local GetTime = GetTime
 local CombatLog_Object_IsA, COMBATLOG_FILTER_HOSTILE_PLAYERS, UnitGUID = CombatLog_Object_IsA, COMBATLOG_FILTER_HOSTILE_PLAYERS, UnitGUID
 function Trinket:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool, auraType)
-
     if not CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or not spellID or not sourceGUID then return end
 
     if playerUsedTrinket[sourceGUID] then return end
@@ -82,7 +92,7 @@ function Trinket:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCa
 end
 
 function Trinket:ApplyTrinket(guid, forceHide)
-    local plate = SP:GetPlateByGUID(guid)
+    local plate = SP.Nameplates.getPlateByGUID(guid)
     if not plate then return end
 
     if not inArena then plate.SmoothyPlate.sp.TrinketIcon:Hide() return end

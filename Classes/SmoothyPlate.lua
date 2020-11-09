@@ -1,5 +1,7 @@
-local SP = LibStub("AceAddon-3.0"):GetAddon("SmoothyPlates")
-_G.SmoothyPlate = {} -- Create Class Table
+local SP = SmoothyPlates;
+local Utils = SP.Utils;
+
+local SmoothyPlate = {} -- Create Class Table
 SmoothyPlate.__index = SmoothyPlate -- Create backfall for lookup
 
 setmetatable(SmoothyPlate, { -- Setup cunstructor call in metatable
@@ -7,6 +9,53 @@ setmetatable(SmoothyPlate, { -- Setup cunstructor call in metatable
     return cls._constructor(...)
   end
 })
+
+-- Convenience functions for getting saved frame positions/anchors
+local Layout = nil
+Layout = {
+    GET = function(frameName, property, module)
+        local moduleName = "";
+        if module then
+            moduleName = string.upper(module.moduleName) .. "_";
+        end
+        local layoutInfo = SP.db.layout.options["LAYOUT_" .. moduleName .. frameName];
+        if layoutInfo then
+            return layoutInfo.value[property]
+        else
+            return nil
+        end
+    end,
+
+    HW = function(frameName, module)
+        local multiplier = Layout.GET("GENERAL", "scale");
+        local width, height = Layout.GET(frameName, "width", module), Layout.GET(frameName, "height", module);
+        if not (width == nil) then width = width * multiplier end
+        if not (height == nil) then height = height * multiplier end
+        return width, height;
+    end,
+
+    APXY = function(frameName, parent, module)
+        local layoutParent = Layout.GET(frameName, "parent", module);
+        if layoutParent then
+            parent = parent[layoutParent]
+        end
+    
+        local a, x, y = Layout.AXY(frameName, module)
+        return a, parent, x, y;
+    end,
+
+    AXY = function(frameName, module)
+        return Layout.GET(frameName, "anchor", module), Layout.XY(frameName, module);
+    end,
+
+    XY = function(frameName, module)
+        local multiplier = Layout.GET("GENERAL", "scale");
+        local x, y = Layout.GET(frameName, "x", module), Layout.GET(frameName, "y", module);
+        if not (x == nil) then x = x * multiplier end
+        if not (y == nil) then y = y * multiplier end
+        return x, y;
+    end
+}
 
 SmoothyPlate.debugFrame = false;
 
@@ -26,7 +75,7 @@ function SmoothyPlate:registerFrame(frame, layoutName, module)
     end
 
     if layoutName then
-        frame:SetAlpha(SP:layout(layoutName, "opacity", module))
+        frame:SetAlpha(Layout.GET(layoutName, "opacity", module))
     end
 end
 
@@ -42,33 +91,33 @@ function SmoothyPlate._constructor(frame, debug)
     this.sp:SetAllPoints(frame)
     this.sp:SetFrameStrata("BACKGROUND")
 
-    this.sp:SetScale(SP.perfectScale)
+    this.sp:SetScale(SP.Vars.perfectScale)
 
     for k, v in pairs(SmoothyPlate.elements) do
         this.sp[k] = this["ConstructElement_" .. k](this, this.sp);
-        this.sp[k]:SetAlpha(SP:layout(v, "opacity"))
+        this.sp[k]:SetAlpha(Layout.GET(v, "opacity"))
     end
 
     for k, v in pairs(SmoothyPlate.elements) do
         local element = this.sp[k];
         if element.SetSize then
-            local w, h = SP:layoutHW(v);
+            local w, h = Layout.HW(v);
             if w and h then
                 element:SetSize(w, h)
             end
         end
         if element.SetPoint then
-            local parent = SP:layout(v, "parent")
+            local parent = Layout.GET(v, "parent")
             if parent then
                 parent = this.sp[parent];
             else
                 parent = this.sp;
             end
-            local a, x, y = SP:layoutAXY(v);
+            local a, x, y = Layout.AXY(v);
             local success = xpcall(element.SetPoint, function() end, element, a, parent, x, y)
             if not success then
                 -- restore old point
-                SP:print("Can't anchor to that element because it's a children")
+                Utils.print("Can't anchor to that element because it's a children")
             end
         end
     end
@@ -98,63 +147,62 @@ function SmoothyPlate:GetUnit()
 end
 
 function SmoothyPlate:ConstructElement_HealthBar(parent)
+    local frameH = Utils.createSimpleFrame("$parentHealthBar", parent, true)
+    local w, h = Layout.HW("HEALTH")
+    frameH:SetFrameLevel(0)
 
-    local frameH = CreateFrame("Frame", "$parentHealthBar", parent, BackdropTemplateMixin and "BackdropTemplate")
-    local w, h = SP:layoutHW("HEALTH");
-
-    SP:AddBorder(frameH)
+    Utils.addBorder(frameH)
 
     frameH.bar = CreateFrame("StatusBar", nil, frameH)
-	frameH.bar:SetStatusBarTexture(SP.BAR_TEX)
+	frameH.bar:SetStatusBarTexture(SP.Vars.ui.textures.BAR_TEX)
 	frameH.bar:GetStatusBarTexture():SetHorizTile(false)
     frameH.bar:SetStatusBarColor(1,0,0,1)
     frameH.bar:SetSize(w - 2, h - 2)
     frameH.bar:SetPoint("CENTER", 0, 0)
     frameH.bar:SetMinMaxValues(1, 10)
     frameH.bar:SetValue(7)
+    frameH.bar:SetFrameLevel(1)
     self:Smooth(frameH.bar)
 
 	frameH.pc = frameH.bar:CreateFontString(nil, "OVERLAY")
-	frameH.pc:SetPoint(SP:layoutAPXY("HEALTH_TEXT", frameH))
-	frameH.pc:SetFont(SP.FONT, SP:layout("HEALTH_TEXT", "size") * SP:layout("GENERAL", "scale"), "OUTLINE")
+	frameH.pc:SetPoint(Layout.APXY("HEALTH_TEXT", frameH))
+	frameH.pc:SetFont(SP.Vars.ui.font, Layout.GET("HEALTH_TEXT", "size") * Layout.GET("GENERAL", "scale"), "OUTLINE")
 	frameH.pc:SetJustifyH("LEFT")
 	frameH.pc:SetShadowOffset(1, -1)
 	frameH.pc:SetTextColor(1, 1, 1)
     frameH.pc:SetText("70%")
-    frameH.pc:SetAlpha(SP:layout("HEALTH_TEXT", "opacity"))
+    frameH.pc:SetAlpha(Layout.GET("HEALTH_TEXT", "opacity"))
 
-    frameH.back = CreateFrame("Frame", "$parentBack", frameH, BackdropTemplateMixin and "BackdropTemplate")
+    frameH.back = Utils.createSimpleFrame("$parentBack", frameH, true)
     frameH.back:SetSize(w, h)
     frameH.back:SetPoint("CENTER", 0, 0)
-    frameH.back:SetBackdrop(SP.stdbdne)
+    frameH.back:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     frameH.back:SetBackdropColor(0,0,0,0.4)
-
-    frameH:SetFrameLevel(4)
 
     return frameH;
 end
 
 function SmoothyPlate:ConstructElement_PowerBar(parent)
-    local frameP = CreateFrame("Frame", "$parentPowerBar", parent, BackdropTemplateMixin and "BackdropTemplate")
-    local w, h = SP:layoutHW("POWER")
+    local frameP = Utils.createSimpleFrame("$parentPowerBar", parent, true)
+    local w, h = Layout.HW("POWER")
 
     frameP.bar = CreateFrame("StatusBar", nil, frameP)
-	frameP.bar:SetStatusBarTexture(SP.BAR_TEX)
+	frameP.bar:SetStatusBarTexture(SP.Vars.ui.textures.BAR_TEX)
     frameP.bar:GetStatusBarTexture():SetHorizTile(false)
     frameP.bar:SetSize(w - 2, h - 2)
 	frameP.bar:SetPoint("CENTER", 0, 0)
     frameP.bar:SetStatusBarColor(0.9,0.9,0.1,1)
 	self:Smooth(frameP.bar)
 
-    frameP.back = CreateFrame("Frame", "$parentBack", frameP, BackdropTemplateMixin and "BackdropTemplate")
+    frameP.back = Utils.createSimpleFrame("$parentBack", frameP, true)
     frameP.back:SetSize(w, h)
     frameP.back:SetPoint("CENTER", 0, 0)
-    frameP.back:SetBackdrop(SP.stdbdne)
+    frameP.back:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     frameP.back:SetBackdropColor(0,0,0,0.4)
 
-    SP:AddSingleBorders(frameP.back, 0,0,0,1);
+    Utils.addSingleBorders(frameP.back, 0,0,0,1);
 
-    local hb = SP:layout("POWER", "hide border") or 'n';
+    local hb = Layout.GET("POWER", "hide border") or 'n';
     if not (hb == 'n') then
         frameP.back[hb]:Hide();
     end
@@ -166,36 +214,35 @@ end
 
 function SmoothyPlate:ConstructElement_CastBar(parent)
 
-    local frameC = CreateFrame("Frame", "$parentCastBar", parent, BackdropTemplateMixin and "BackdropTemplate")
-    local w, h = SP:layoutHW("CAST");
+    local frameC = Utils.createSimpleFrame("$parentCastBar", parent, true)
+    local w, h = Layout.HW("CAST");
 
-    SP:AddBorder(frameC)
-    frameC:SetFrameLevel(4)
+    Utils.addBorder(frameC)
 
 	frameC.bar = CreateFrame("StatusBar", nil, frameC)
-	frameC.bar:SetStatusBarTexture(SP.BAR_TEX)
+	frameC.bar:SetStatusBarTexture(SP.Vars.ui.textures.BAR_TEX)
 	frameC.bar:GetStatusBarTexture():SetHorizTile(false)
 	frameC.bar:SetSize(w - 2, h - 2)
 	frameC.bar:SetPoint("CENTER", 0, 0)
-    frameC.bar:SetStatusBarColor(SP:fromRGB(255, 255, 0, 255))
+    frameC.bar:SetStatusBarColor(Utils.fromRGB(255, 255, 0, 255))
     self:Smooth(frameC.bar)
 
     frameC.bar:SetMinMaxValues(1, 10)
     frameC.bar:SetValue(7)
 
-    local w, h = SP:layoutHW("CAST_ICON");
-    local a, x, y = SP:layoutAXY("CAST_ICON");
+    local w, h = Layout.HW("CAST_ICON");
+    local a, x, y = Layout.AXY("CAST_ICON");
     local tex = GetSpellTexture(19750)
-    SP:CreateTextureFrame(
+    Utils.createTextureFrame(
         frameC,
         w, h, a, x, y,
-        SP:layout("CAST_ICON", "opacity"),
+        Layout.GET("CAST_ICON", "opacity"),
         tex
     );
 
 	frameC.name = frameC.bar:CreateFontString(nil, "OVERLAY")
-	frameC.name:SetPoint(SP:layoutAPXY("CAST_TEXT", frameC)) 
-	frameC.name:SetFont(SP.FONT, SP:layout("CAST_TEXT", "size") * SP:layout("GENERAL", "scale"), "OUTLINE")
+	frameC.name:SetPoint(Layout.APXY("CAST_TEXT", frameC)) 
+	frameC.name:SetFont(SP.Vars.ui.font, Layout.GET("CAST_TEXT", "size") * Layout.GET("GENERAL", "scale"), "OUTLINE")
 	frameC.name:SetJustifyH("LEFT")
 	frameC.name:SetShadowOffset(1, -1)
 	frameC.name:SetTextColor(1, 1, 1)
@@ -210,7 +257,7 @@ end
 function SmoothyPlate:ConstructElement_AbsorbBar(parent)
 
     local frameAB = CreateFrame("StatusBar", "$parentAbsorbBar", parent)
-	frameAB:SetStatusBarTexture(SP.PRED_BAR_TEX)
+	frameAB:SetStatusBarTexture(SP.Vars.ui.textures.PRED_BAR_TEX)
 	frameAB:GetStatusBarTexture():SetHorizTile(false)
     frameAB:SetStatusBarColor(1,1,1,1)
     frameAB:SetFrameLevel(3)
@@ -222,7 +269,7 @@ end
 function SmoothyPlate:ConstructElement_HealPredBar(parent)
 
     local frameHP = CreateFrame("StatusBar", "$parentHealPredBar", parent)
-	frameHP:SetStatusBarTexture(SP.PRED_BAR_TEX)
+	frameHP:SetStatusBarTexture(SP.Vars.ui.textures.PRED_BAR_TEX)
 	frameHP:GetStatusBarTexture():SetHorizTile(false)
     frameHP:SetStatusBarColor(1,1,1,1)
     frameHP:SetFrameLevel(2)
@@ -233,10 +280,10 @@ end
 
 function SmoothyPlate:ConstructElement_PredSpark(parent)
 
-    local framePS = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
-    framePS:SetSize(3, SP:layout("HEALTH", "height"))
+    local framePS = Utils.createSimpleFrame(nil, parent, true)
+    framePS:SetSize(3, Layout.GET("HEALTH", "height"))
     framePS:SetPoint("RIGHT", parent.HealthBar, 2, 0)
-    framePS:SetBackdrop(SP.stdbd)
+    framePS:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
     framePS:SetBackdropColor(1,1,1,1)
 
     self:registerFrame(framePS)
@@ -250,7 +297,7 @@ end
 function SmoothyPlate:ConstructElement_Name(parent)
 
     local frameN = parent:CreateFontString(nil, "OVERLAY")
-	frameN:SetFont(SP.FONT, SP:layout("NAME", "size") * SP:layout("GENERAL", "scale"), "OUTLINE")
+	frameN:SetFont(SP.Vars.ui.font, Layout.GET("NAME", "size") * Layout.GET("GENERAL", "scale"), "OUTLINE")
 	frameN:SetJustifyH("LEFT")
 	frameN:SetShadowOffset(1, -1)
 	frameN:SetTextColor(1, 1, 1)
@@ -324,7 +371,7 @@ function SmoothyPlate:UpdateHealth()
     self.sp.HealthBar.bar:SetMinMaxValues(0, maxHealth)
     self.sp.HealthBar.bar:SetValue(currHealth)
 
-    self.sp.HealthBar.pc:SetText(SP:percent(currHealth, maxHealth) .. "%")
+    self.sp.HealthBar.pc:SetText(Utils.percent(currHealth, maxHealth) .. "%")
     self.currHealth = currHealth
     self.health = maxHealth
 
@@ -491,9 +538,9 @@ function SmoothyPlate:PrepareCast(text, texture, min, max, notInterruptible)
     self.sp.CastBar.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 
     if notInterruptible then
-        self.sp.CastBar.bar:SetStatusBarColor(SP:fromRGB(152,152,152,255))
+        self.sp.CastBar.bar:SetStatusBarColor(Utils.fromRGB(152,152,152,255))
     else
-        self.sp.CastBar.bar:SetStatusBarColor(SP:fromRGB(237,219,72,255))
+        self.sp.CastBar.bar:SetStatusBarColor(Utils.fromRGB(237,219,72,255))
     end
 
 end
@@ -542,3 +589,6 @@ function SmoothyPlate:StopCasting()
 end
 
 -------------------------------
+
+SP.Layout = Layout;
+SP.SmoothyPlate = SmoothyPlate;
