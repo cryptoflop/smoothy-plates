@@ -1,8 +1,8 @@
-## Interface: 90001
+## Interface: 90002
 ## Title: SmoothyPlates by |cffff0020Vènomstrikè|r
 ## Notes: Smoothy Plates :)
 ## Author: Max David aka Vènomstrikè
-## Version: 5.1.0
+## Version: 5.1.1
 ## SavedVariablesPerCharacter: SPDB
 
 Libs\LibStub\LibStub.lua
