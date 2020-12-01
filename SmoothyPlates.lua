@@ -1,6 +1,7 @@
 -- Author: Max David aka Vènomstrikè
 -- 2016 - 2020
 local SP = SmoothyPlates
+local Utils = SP.Utils
 local Addon = LibStub("AceAddon-3.0"):NewAddon("SmoothyPlates")
 SP.Addon = Addon
 

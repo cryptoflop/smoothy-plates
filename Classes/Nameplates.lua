@@ -3,71 +3,36 @@ local Utils = SP.Utils
 
 local _, scale = GetPhysicalScreenSize()
 SP.Vars.perfectScale = 768/scale;
+
+SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_ADDED", function(e, unitid) NAME_PLATE_UNIT_ADDED(unitid) end)
+SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_REMOVED", function(e, unitid) NAME_PLATE_UNIT_REMOVED(unitid) end)
+
+local GuidToId = {};
+
+-- other addons may set the nameplate scale after loading
+SP.hookOnInit(function()
+	SP.Ace.Timer.ScheduleTimer({}, function() 
+		SetCVar('nameplateGlobalScale', 1)
+	end, 1)
+end)
 SetCVar('nameplateGlobalScale', 1)
 
-
-SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_ADDED", function(e, unitid) NAME_PLATE_UNIT_ADDED(unitid) end);
-SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_REMOVED", function(e, unitid) NAME_PLATE_UNIT_REMOVED(unitid) end);
-
-
-local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
+local GetNamePlateForUnit, GetNamePlates = C_NamePlate.GetNamePlateForUnit, C_NamePlate.GetNamePlates
 local UnitIsUnit = UnitIsUnit
-local UnitGUID = UnitGUID
-
-local PlateStorage = {}
-
-function BypassFunction() return true end
-
--- blizz frame does not exists at this point
--- function NAME_PLATE_CREATED(event, plate) end
-
-function NAME_PLATE_UNIT_ADDED(unitid)
-	local plate = GetNamePlateForUnit(unitid);
-
-	local blizzFrame = plate.UnitFrame;
-
-	blizzFrame._Show = blizzFrame.Show
-	blizzFrame.Show = BypassFunction
-	blizzFrame:Hide();
-
-	SP.SmoothyPlate(plate);
-	SP.callbacks:Fire("AFTER_SP_CREATION", plate)
-
-	-- Personal Display
-	if UnitIsUnit("player", unitid) then
-		plate:GetChildren():_Show()
-	-- Normal Plates
-	else
-		plate:GetChildren():Hide()
-		if plate and plate.SmoothyPlate then
-			plate.SmoothyPlate:AddUnit(unitid)
-			PlateStorage[UnitGUID(plate.SmoothyPlate.unitid)] = plate
-			SP.callbacks:Fire("AFTER_SP_UNIT_ADDED", plate)
-		end
-	end
-end
-
-function NAME_PLATE_UNIT_REMOVED(unitid)
-	local plate = GetNamePlateForUnit(unitid);
-
-	if unitid and plate and plate.SmoothyPlate and plate.SmoothyPlate.unitid then
-		SP.callbacks:Fire("BEFORE_SP_UNIT_REMOVED", plate)
-		PlateStorage[UnitGUID(plate.SmoothyPlate.unitid)] = nil
-		plate.SmoothyPlate:RemoveUnit()
-	end
-end
+local hooksecurefunc = hooksecurefunc
 
 function getPlateByGUID(guid)
-	return PlateStorage[guid]
+	local unitid = GuidToId[guid]
+	if unitid then
+		return GetNamePlateForUnit(unitid)
+	end
+	return nil;
 end
 
 function forEachPlate(func)
-	if not func then return end
-
-	for guid, plate in pairs(PlateStorage) do
-		if plate then
-			func(plate, guid)
-		end
+	local plates = GetNamePlates();
+	for _, plate in pairs(plates) do
+		func(plate)
 	end
 end
 
@@ -77,6 +42,57 @@ SP.Nameplates = {
 }
 
 ----------------Plate Event handling-----------------
+
+function plateIsSupported(unitid)
+	if unitid == "player" then return false end
+	if UnitNameplateShowsWidgetsOnly(unitid) then return false end
+	return true
+end
+
+hooksecurefunc(NamePlateDriverFrame, "AcquireUnitFrame", function(plate)
+	if not plate.isModified then
+		plate.isModified = true
+		hooksecurefunc(plate.UnitFrame, "Show", function(self)
+			if plateIsSupported(self.unit) then
+				self:Hide()
+			end
+		end)
+	end
+end)
+
+function BypassShow() return true end
+
+function NAME_PLATE_UNIT_ADDED(unitid)
+	if plateIsSupported(unitid) then
+		local plate = GetNamePlateForUnit(unitid)
+		if not plate then return end
+		
+		if plate.UnitFrame then
+			-- hide blizzard frame
+			plate.UnitFrame:Hide()
+		end
+
+		if not plate.SmoothyPlate then
+			SP.SmoothyPlate(plate);
+			SP.callbacks:Fire("AFTER_SP_CREATION", plate)
+		end
+
+		plate.SmoothyPlate:AddUnit(unitid)
+		GuidToId[plate.SmoothyPlate.guid] = unitid
+		SP.callbacks:Fire("AFTER_SP_UNIT_ADDED", plate)
+	end
+end
+
+function NAME_PLATE_UNIT_REMOVED(unitid)
+	local plate = GetNamePlateForUnit(unitid);
+	if not plate then return end
+
+	if plate.SmoothyPlate and plate.SmoothyPlate.unitid then
+		SP.callbacks:Fire("BEFORE_SP_UNIT_REMOVED", plate)
+		GuidToId[plate.SmoothyPlate.guid] = nil
+		plate.SmoothyPlate:RemoveUnit()
+	end
+end
 
 local EventHandler = {}
 
@@ -118,11 +134,7 @@ function EventHandler:UNIT_DISPLAYPOWER(event, unitid)
 end
 
 function EventHandler:UNIT_HEAL_PREDICTION(event, unitid)
-	if not unitid then return end
-	local plate = GetNamePlateForUnit(unitid)
-	if not plate or UnitIsUnit("player", unitid) then return end
-
-	plate.SmoothyPlate:UpdateHealAbsorbPrediction()
+	self:UNIT_HEALTH(event, unitid)
 end
 
 function EventHandler:UNIT_ABSORB_AMOUNT_CHANGED(event, unitid)
@@ -149,7 +161,7 @@ end
 
 function EventHandler:RAID_TARGET_UPDATE(event)
 	forEachPlate(function(plate)
-		plate.SmoothyPlate:UpdateRaidTargetIcon();
+		plate.SmoothyPlate:UpdateRaidTargetIcon()
 	end)
 end
 

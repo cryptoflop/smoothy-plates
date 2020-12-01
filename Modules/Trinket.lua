@@ -2,11 +2,14 @@ local SP = SmoothyPlates
 local Utils = SP.Utils
 local Trinket = SP.Addon:NewModule("Trinket", "AceTimer-3.0", "AceEvent-3.0")
 
+-- Stolen from Healers GladiatorlosSA2
 local trinketSpellIDs = {
-    [208683] = true,
-    [195710] = true,
-    [ 42292] = true,
-    [ 59752] = true
+    [195901] = true,
+    [214027] = true,
+    [42292] = true,
+    [208683] = true, -- Gladiator's Medallion Legion
+    [195710] = true, -- Honorable Medallion Legion
+    [336126] = true -- Gladiator's Medallion Shadowlands
 }
 
 local playerUsedTrinket = {}
@@ -25,6 +28,7 @@ end
 
 local inArena = false
 function Trinket:PLAYER_ENTERING_WORLD()
+    self:CleanUp()
     if select(2, IsInInstance()) == "arena" then
         inArena = true
         self:ARENA_STATE_CHANGED(true)
@@ -33,6 +37,24 @@ function Trinket:PLAYER_ENTERING_WORLD()
             inArena = false
             self:ARENA_STATE_CHANGED(false)
         end
+    end
+end
+
+local timers = {}
+
+function Trinket:CleanUp()
+    for k, v in pairs(timers) do
+        self:CancelTimer(v)
+    end
+    timers = {}
+    playerUsedTrinket = {}
+end
+
+function Trinket:ARENA_STATE_CHANGED(isInArena)
+    if isInArena then
+        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+    else
+        self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     end
 end
 
@@ -59,59 +81,62 @@ function Trinket:CreateElement_TrinketIcon(event, plate)
 
     plate.SmoothyPlate:registerFrame(sp.TrinketIcon, "TRINKET", self)
     sp.TrinketIcon:Hide()
-
-end
-
-function Trinket:ARENA_STATE_CHANGED(isInArena)
-    playerUsedTrinket = {}
-    if isInArena then
-        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    else
-        self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    end
 end
 
 local GetTime = GetTime
 local CombatLog_Object_IsA, COMBATLOG_FILTER_HOSTILE_PLAYERS, UnitGUID = CombatLog_Object_IsA, COMBATLOG_FILTER_HOSTILE_PLAYERS, UnitGUID
-function Trinket:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool, auraType)
+function Trinket:COMBAT_LOG_EVENT_UNFILTERED()
+    local 
+        timeStamp, eventType, hideCaster, 
+        sourceGUID, sourceName, sourceFlags, 
+        sourceRaidFlags, destGUID, destName, 
+        destFlags, destRaidFlags, spellID, 
+        spellName, spellSchool, auraType
+        = CombatLogGetCurrentEventInfo()
+       
     if not CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or not spellID or not sourceGUID then return end
 
     if playerUsedTrinket[sourceGUID] then return end
-
+    
     if trinketSpellIDs[spellID] then
         playerUsedTrinket[sourceGUID] = GetTime() + 180
-        self:ScheduleTimer(function()
-            if playerUsedTrinket[sourceGUID] then
-                playerUsedTrinket[sourceGUID] = nil
-                self:ApplyTrinket(sourceGUID)
-            end
-        end, 180)
+        table.insert(timers,
+            self:ScheduleTimer(function()
+                if playerUsedTrinket[sourceGUID] then
+                    playerUsedTrinket[sourceGUID] = nil
+                    self:ApplyTrinket(sourceGUID)
+                end
+            end, 180)
+        )
     else return end
 
     self:ApplyTrinket(sourceGUID)
 end
 
-function Trinket:ApplyTrinket(guid, forceHide)
-    local plate = SP.Nameplates.getPlateByGUID(guid)
-    if not plate then return end
-
-    if not inArena then plate.SmoothyPlate.sp.TrinketIcon:Hide() return end
-    if forceHide then plate.SmoothyPlate.sp.TrinketIcon:Hide() return end
-
-    if playerUsedTrinket[guid] then
-        plate.SmoothyPlate.sp.TrinketIcon.cd:SetCooldown(GetTime() - playerUsedTrinket[guid], 180)
-        plate.SmoothyPlate.sp.TrinketIcon:Show()
-    else
-        plate.SmoothyPlate.sp.TrinketIcon.cd:SetCooldown(0, 0)
-        plate.SmoothyPlate.sp.TrinketIcon:Show()
+local getPlateByGUID = SP.Nameplates.getPlateByGUID
+function Trinket:ApplyTrinket(guid, plate, forceHide)
+    if not plate then 
+        plate = getPlateByGUID(guid)
+        if not plate then return end
     end
 
+    local smp = plate.SmoothyPlate
+    if not inArena then smp.sp.TrinketIcon:Hide() return end
+    if forceHide then smp.sp.TrinketIcon:Hide() return end
+
+    if playerUsedTrinket[guid] then
+        smp.sp.TrinketIcon.cd:SetCooldown(GetTime() - playerUsedTrinket[guid], 180)
+        smp.sp.TrinketIcon:Show()
+    else
+        smp.sp.TrinketIcon.cd:SetCooldown(0, 0)
+        smp.sp.TrinketIcon:Show()
+    end
 end
 
 function Trinket:UNIT_ADDED(event, plate)
-    self:ApplyTrinket(UnitGUID(plate.SmoothyPlate.unitid))
+    self:ApplyTrinket(plate.SmoothyPlate.guid, plate)
 end
 
 function Trinket:UNIT_REMOVED(event, plate)
-    self:ApplyTrinket(UnitGUID(plate.SmoothyPlate.unitid), true)
+    self:ApplyTrinket(plate.SmoothyPlate.guid, plate, true)
 end

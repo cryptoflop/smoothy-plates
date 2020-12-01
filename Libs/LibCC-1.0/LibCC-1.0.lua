@@ -251,7 +251,14 @@ local activeSilences = {}
 local COMBATLOG_FILTER_HOSTILE_UNITS, COMBATLOG_FILTER_HOSTILE_PLAYERS, COMBATLOG_FILTER_NEUTRAL_UNITS = COMBATLOG_FILTER_HOSTILE_UNITS, COMBATLOG_FILTER_HOSTILE_PLAYERS, COMBATLOG_FILTER_NEUTRAL_UNITS
 
 function private_COMBAT_LOG_EVENT_UNFILTERED(event)
-	local timeStamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool, auraType = CombatLogGetCurrentEventInfo();
+	local 
+        timeStamp, eventType, hideCaster, 
+        sourceGUID, sourceName, sourceFlags, 
+        sourceRaidFlags, destGUID, destName, 
+        destFlags, destRaidFlags, spellID, 
+        spellName, spellSchool, auraType
+		= CombatLogGetCurrentEventInfo()
+	
 	if not auraType or not spellID or not eventType or not destGUID or not sourceGUID then return end
 
 	if CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_UNITS) or CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_NEUTRAL_UNITS) then

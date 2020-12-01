@@ -60,7 +60,7 @@ Layout = {
 SmoothyPlate.debugFrame = false;
 
 SmoothyPlate.elements = { HealthBar = "HEALTH", PowerBar = "POWER", CastBar = "CAST", Name = "NAME",
-HealPredBar = "HEALTH", AbsorbBar = "HEALTH", PredSpark = "HEALTH", RaidIcon = "RAID_ICON" };
+HealPredBar = "HEALTH", AbsorbBar = "HEALTH", RaidIcon = "RAID_ICON" };
 
 SmoothyPlate.elementsPlain = {}
 for k, v in pairs(SmoothyPlate.elements) do
@@ -123,6 +123,7 @@ function SmoothyPlate._constructor(frame, debug)
     end
 
     this.unitid = nil;
+    this.guid = nil;
     this.health = 0;
     this.currHealth = 0;
     this.currHealPred = 0;
@@ -225,7 +226,7 @@ function SmoothyPlate:ConstructElement_CastBar(parent)
 	frameC.bar:SetSize(w - 2, h - 2)
 	frameC.bar:SetPoint("CENTER", 0, 0)
     frameC.bar:SetStatusBarColor(Utils.fromRGB(255, 255, 0, 255))
-    self:Smooth(frameC.bar)
+    -- self:Smooth(frameC.bar)
 
     frameC.bar:SetMinMaxValues(1, 10)
     frameC.bar:SetValue(7)
@@ -259,8 +260,8 @@ function SmoothyPlate:ConstructElement_AbsorbBar(parent)
     local frameAB = CreateFrame("StatusBar", "$parentAbsorbBar", parent)
 	frameAB:SetStatusBarTexture(SP.Vars.ui.textures.PRED_BAR_TEX)
 	frameAB:GetStatusBarTexture():SetHorizTile(false)
-    frameAB:SetStatusBarColor(1,1,1,1)
-    frameAB:SetFrameLevel(3)
+    frameAB:SetStatusBarColor(1,1,1,0.6)
+    frameAB:SetFrameLevel(1)
 	self:Smooth(frameAB)
 
     return frameAB;
@@ -271,27 +272,11 @@ function SmoothyPlate:ConstructElement_HealPredBar(parent)
     local frameHP = CreateFrame("StatusBar", "$parentHealPredBar", parent)
 	frameHP:SetStatusBarTexture(SP.Vars.ui.textures.PRED_BAR_TEX)
 	frameHP:GetStatusBarTexture():SetHorizTile(false)
-    frameHP:SetStatusBarColor(1,1,1,1)
-    frameHP:SetFrameLevel(2)
+    frameHP:SetStatusBarColor(0.2,0.2,1,0.6)
+    frameHP:SetFrameLevel(1)
 	self:Smooth(frameHP)
 
     return frameHP;
-end
-
-function SmoothyPlate:ConstructElement_PredSpark(parent)
-
-    local framePS = Utils.createSimpleFrame(nil, parent, true)
-    framePS:SetSize(3, Layout.GET("HEALTH", "height"))
-    framePS:SetPoint("RIGHT", parent.HealthBar, 2, 0)
-    framePS:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
-    framePS:SetBackdropColor(1,1,1,1)
-
-    self:registerFrame(framePS)
-    framePS:Hide()
-
-    if self.debug then framePS:_hide() end
-
-    return framePS
 end
 
 function SmoothyPlate:ConstructElement_Name(parent)
@@ -322,8 +307,10 @@ function SmoothyPlate:ConstructElement_RaidIcon(parent)
     return frameRI;
 end
 
+local UnitGUID = UnitGUID
 function SmoothyPlate:AddUnit(unitid)
     self.unitid = unitid;
+    self.guid = UnitGUID(unitid);
 
     self:UpdateName();
     self:UpdateHealth();
@@ -376,7 +363,6 @@ function SmoothyPlate:UpdateHealth()
     self.health = maxHealth
 
     self:UpdateHealAbsorbPrediction()
-
 end
 
 function SmoothyPlate:UpdateHealthColor()
@@ -447,8 +433,8 @@ local function UpdateFillBar(barWidth, previousTexture, bar, amount)
 	end
 
 	bar:ClearAllPoints()
-	bar:Point("TOPLEFT", previousTexture, "TOPRIGHT");
-	bar:Point("BOTTOMLEFT", previousTexture, "BOTTOMRIGHT");
+	bar:SetPoint("TOPLEFT", previousTexture, "TOPRIGHT");
+	bar:SetPoint("BOTTOMLEFT", previousTexture, "BOTTOMRIGHT");
 
 	bar:SetWidth(barWidth);
 
@@ -473,9 +459,7 @@ function SmoothyPlate:UpdateHealAbsorbPrediction()
 		allIncomingHeal = maxHealth * maxOverflow - health + unitCurrentHealAbsorb
 	end
 
-    local showSpark = false
 	if(health - unitCurrentHealAbsorb + allIncomingHeal + totalAbsorb >= maxHealth or health + totalAbsorb >= maxHealth) then
-        showSpark = true
 		if(allIncomingHeal > unitCurrentHealAbsorb) then
 			totalAbsorb = mathmax(0, maxHealth - (health - unitCurrentHealAbsorb + allIncomingHeal))
 		else
@@ -483,17 +467,12 @@ function SmoothyPlate:UpdateHealAbsorbPrediction()
 		end
 	end
 
-    self.sp.PredSpark:Hide()
-
     self.currHealPred = allIncomingHeal
     if allIncomingHeal == 0 then
         self.sp.HealPredBar:SetMinMaxValues(0, self.health)
         self.sp.HealPredBar:SetValue(0)
     else
         self.sp.HealPredBar:SetMinMaxValues(0, self.health)
-        if showSpark then
-            self.sp.PredSpark:Show()
-        end
         self.sp.HealPredBar:SetValue(allIncomingHeal)
     end
 
@@ -503,9 +482,6 @@ function SmoothyPlate:UpdateHealAbsorbPrediction()
         self.sp.AbsorbBar:SetValue(0)
     else
         self.sp.AbsorbBar:SetMinMaxValues(0, self.health)
-        if showSpark then
-            self.sp.PredSpark:Show()
-        end
         self.sp.AbsorbBar:SetValue(totalAbsorb)
     end
 
@@ -542,38 +518,39 @@ function SmoothyPlate:PrepareCast(text, texture, min, max, notInterruptible)
     else
         self.sp.CastBar.bar:SetStatusBarColor(Utils.fromRGB(237,219,72,255))
     end
-
 end
 
-local function OnUpdateCastBarForward(self, startTime, endTime, plate, notInterruptible)
+local function OnUpdateCastBarForward(self, startTime, endTime)
         local currentTime = GetTime() * 1000;
         self:SetValue(currentTime);
-        SP.callbacks:Fire("SP_UNIT_CAST_UPDATE", plate, startTime, endTime, currentTime, notInterruptible);
 end
 
-local function OnUpdateCastBarReverse(self, startTime, endTime, plate, notInterruptible)
+local function OnUpdateCastBarReverse(self, startTime, endTime)
 	local currentTime = GetTime() * 1000
     local newValue = (endTime + startTime) - currentTime;
     self:SetValue(newValue)
-    SP.callbacks:Fire("SP_UNIT_CHANNEL_UPDATE", plate, startTime, endTime, newValue, notInterruptible);
 end
 
 function SmoothyPlate:StartCasting(channeled)
     if not self.unitid then return end
 
+    -- TODO: the cast bar still seems laggy...
+    -- dont know what it is. maybe it is a result of the nameplate scale?
     self:StopCasting()
-    local name, text, texture, startTime, endTime, _, _, notInterruptible;
-    if not channeled then
-        name, text, texture, startTime, endTime, _, _, notInterruptible = UnitCastingInfo(self.unitid)
-        self.sp.CastBar.bar:SetScript("OnUpdate", function(barSelf) OnUpdateCastBarForward(barSelf, startTime, endTime, self, notInterruptible) end)
-    else
+    local name, text, texture, startTime, endTime, _, _, notInterruptible, updateFunc;
+    local bar = self.sp.CastBar.bar;
+    if channeled then
         name, text, texture, startTime, endTime, _, _, notInterruptible = UnitChannelInfo(self.unitid)
-        self.sp.CastBar.bar:SetScript("OnUpdate", function(barSelf) OnUpdateCastBarReverse(barSelf, startTime, endTime, self, notInterruptible) end)
+        updateFunc = function() OnUpdateCastBarReverse(bar, startTime, endTime) end
+    else
+        name, text, texture, startTime, endTime, _, _, notInterruptible = UnitCastingInfo(self.unitid)
+        updateFunc = function() OnUpdateCastBarForward(bar, startTime, endTime) end
     end
 
     if isTradeSkill or not name or not startTime or not endTime then return end
 
     self:PrepareCast(text, texture, startTime, endTime, notInterruptible)
+    bar:SetScript("OnUpdate", updateFunc);
     self.sp.CastBar:Show()
 
 end
@@ -581,11 +558,6 @@ end
 function SmoothyPlate:StopCasting()
     self.sp.CastBar.bar:SetScript("OnUpdate", nil)
     self.sp.CastBar:Hide()
-
-    if not self.unitid then return end
-
-    -- Do we have to do something here?
-
 end
 
 -------------------------------

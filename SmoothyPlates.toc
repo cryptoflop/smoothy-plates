@@ -2,7 +2,7 @@
 ## Title: SmoothyPlates by |cffff0020Vènomstrikè|r
 ## Notes: Smoothy Plates :)
 ## Author: Max David aka Vènomstrikè
-## Version: 5.1.1
+## Version: 5.2.0
 ## SavedVariablesPerCharacter: SPDB
 
 Libs\LibStub\LibStub.lua
@@ -37,4 +37,3 @@ Modules\Silences.lua
 Modules\Stunns.lua
 Modules\Healers.lua
 Modules\Trinket.lua
-Modules\CastKick.lua

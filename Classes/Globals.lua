@@ -28,7 +28,7 @@ end
 _G.SmoothyPlates = {
 
     Vars = {
-        currVersion = "5.1.0",
+        currVersion = "5.2.0",
 
         ui = {
             textures = textures,

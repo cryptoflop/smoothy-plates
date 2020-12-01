@@ -5,11 +5,6 @@ SmoothyPlates.getDefaultConfig = function()
         ["modules"] = {
             ["displayName"] = "Modules",
             ["options"] = {
-                ["CastKick"] = {
-                    ["value"] = true,
-                    ["type"] = "BOOL",
-                    ["displayName"] = "Cast Kick Alert",
-                },
                 ["Stuns"] = {
                     ["value"] = true,
                     ["type"] = "BOOL",
@@ -18,7 +13,7 @@ SmoothyPlates.getDefaultConfig = function()
                 ["Trinket"] = {
                     ["value"] = false,
                     ["type"] = "BOOL",
-                    ["displayName"] = "Trinket",
+                    ["displayName"] = "Arena Trinket",
                 },
                 ["Silences"] = {
                     ["value"] = true,
@@ -26,16 +21,38 @@ SmoothyPlates.getDefaultConfig = function()
                     ["displayName"] = "Silences",
                 },
                 ["Healers"] = {
-                    ["value"] = true,
+                    ["value"] = false,
                     ["type"] = "BOOL",
-                    ["displayName"] = "Arena Healers",
+                    ["displayName"] = "Healers",
+                },
+            },
+            ["configurable"] = true,
+        },
+
+        ["media"] = {
+            ["displayName"] = "Media",
+            ["options"] = {
+                ["FONT"] = {
+                    ["value"] = "Designosaur Regular",
+                    ["type"] = "FONT",
+                    ["displayName"] = "Font",
+                },
+                ["BAR"] = {
+                    ["value"] = "Glaze",
+                    ["type"] = "BAR",
+                    ["displayName"] = "Bar",
+                },
+                ["PRED_BAR"] = {
+                    ["value"] = "Glaze",
+                    ["type"] = "BAR",
+                    ["displayName"] = "Prediction Bar",
                 },
             },
             ["configurable"] = true,
         },
 
         ["layout"] = {
-            ["configurable"] = false,
+            ["displayName"] = "Layout",
             ["options"] = {
                 ["LAYOUT_CAST_TEXT"] = {
                     ["value"] = {
@@ -49,7 +66,7 @@ SmoothyPlates.getDefaultConfig = function()
                 },
                 ["LAYOUT_GENERAL"] = {
                     ["value"] = {
-                        ["scale"] = 1,
+                        ["scale"] = 1.1,
                     },
                     ["displayName"] = "General",
                 },
@@ -74,16 +91,17 @@ SmoothyPlates.getDefaultConfig = function()
                     },
                     ["displayName"] = "Health Text",
                 },
-                ["LAYOUT_NAME"] = {
+                ["LAYOUT_CAST"] = {
                     ["value"] = {
-                        ["y"] = 14,
+                        ["y"] = -26,
                         ["x"] = 0,
-                        ["anchor"] = "TOP",
+                        ["anchor"] = "BOTTOM",
+                        ["height"] = 24,
                         ["opacity"] = 1,
-                        ["parent"] = "HealthBar",
-                        ["size"] = 12,
+                        ["parent"] = "PowerBar",
+                        ["width"] = 120,
                     },
-                    ["displayName"] = "Name",
+                    ["displayName"] = "Cast Bar",
                 },
                 ["LAYOUT_CAST_ICON"] = {
                     ["value"] = {
@@ -100,44 +118,43 @@ SmoothyPlates.getDefaultConfig = function()
                     ["value"] = {
                         ["y"] = 0,
                         ["x"] = 0,
-                        ["height"] = 20,
-                        ["anchor"] = "TOPRIGHT",
+                        ["anchor"] = "TOPLEFT",
+                        ["height"] = 18,
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
-                        ["width"] = 20,
+                        ["width"] = 18,
                     },
                     ["displayName"] = "Healer Icon",
                 },
-                ["LAYOUT_CAST"] = {
+                ["LAYOUT_NAME"] = {
                     ["value"] = {
-                        ["y"] = -26,
+                        ["y"] = 14,
                         ["x"] = 0,
-                        ["height"] = 24,
-                        ["anchor"] = "BOTTOM",
-                        ["opacity"] = 1,
-                        ["parent"] = "PowerBar",
-                        ["width"] = 120,
-                    },
-                    ["displayName"] = "Cast Bar",
-                },
-                ["LAYOUT_TRINKET_TRINKET"] = {
-                    ["value"] = {
-                        ["y"] = 22,
-                        ["x"] = 0,
-                        ["height"] = 20,
-                        ["anchor"] = "TOPRIGHT",
+                        ["anchor"] = "TOP",
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
-                        ["width"] = 20,
+                        ["size"] = 12,
                     },
-                    ["displayName"] = "Trinket",
+                    ["displayName"] = "Name",
+                },
+                ["LAYOUT_CASTKICK_KICK_ALERT"] = {
+                    ["value"] = {
+                        ["y"] = 0,
+                        ["x"] = 13,
+                        ["anchor"] = "RIGHT",
+                        ["height"] = 24,
+                        ["opacity"] = 1,
+                        ["parent"] = "CastBar",
+                        ["width"] = 24,
+                    },
+                    ["displayName"] = "Cast Kick Alert",
                 },
                 ["LAYOUT_STUNS_STUN"] = {
                     ["value"] = {
                         ["y"] = 0,
                         ["x"] = -17,
-                        ["height"] = 32,
                         ["anchor"] = "LEFT",
+                        ["height"] = 32,
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
                         ["width"] = 32,
@@ -148,8 +165,8 @@ SmoothyPlates.getDefaultConfig = function()
                     ["value"] = {
                         ["y"] = 66,
                         ["x"] = 0,
-                        ["height"] = 42,
                         ["anchor"] = "TOP",
+                        ["height"] = 42,
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
                         ["width"] = 42,
@@ -159,34 +176,34 @@ SmoothyPlates.getDefaultConfig = function()
                 ["LAYOUT_POWER"] = {
                     ["value"] = {
                         ["y"] = -4,
-                        ["hide border"] = "t",
                         ["x"] = 0,
-                        ["anchor"] = "BOTTOM",
+                        ["hide border"] = "t",
                         ["parent"] = "HealthBar",
-                        ["opacity"] = 1,
                         ["height"] = 4,
+                        ["opacity"] = 1,
+                        ["anchor"] = "BOTTOM",
                         ["width"] = 120,
                     },
                     ["displayName"] = "Power",
                 },
-                ["LAYOUT_CASTKICK_KICK_ALERT"] = {
+                ["LAYOUT_TRINKET_TRINKET"] = {
                     ["value"] = {
                         ["y"] = 0,
-                        ["x"] = 13,
-                        ["height"] = 24,
-                        ["anchor"] = "RIGHT",
+                        ["x"] = 0,
+                        ["anchor"] = "TOPRIGHT",
+                        ["height"] = 18,
                         ["opacity"] = 1,
-                        ["parent"] = "CastBar",
-                        ["width"] = 24,
+                        ["parent"] = "HealthBar",
+                        ["width"] = 18,
                     },
-                    ["displayName"] = "Cast Kick Alert",
+                    ["displayName"] = "Trinket",
                 },
                 ["LAYOUT_SILENCES_SILENCE"] = {
                     ["value"] = {
                         ["y"] = 0,
                         ["x"] = 17,
-                        ["height"] = 32,
                         ["anchor"] = "RIGHT",
+                        ["height"] = 32,
                         ["opacity"] = 1,
                         ["parent"] = "HealthBar",
                         ["width"] = 32,
@@ -194,30 +211,9 @@ SmoothyPlates.getDefaultConfig = function()
                     ["displayName"] = "Silence",
                 },
             },
-            ["displayName"] = "Layout",
-        },
-
-        ["media"] = {
-            ["displayName"] = "Media",
-            ["options"] = {
-                ["FONT"] = {
-                    ["value"] = "Designosaur Regular",
-                    ["type"] = "FONT",
-                    ["displayName"] = "Font",
-                },
-                ["BAR"] = {
-                    ["value"] = "Glaze",
-                    ["type"] = "BAR",
-                    ["displayName"] = "Bar",
-                },
-                ["PRED_BAR"] = {
-                    ["value"] = "Glaze",
-                    ["type"] = "BAR",
-                    ["displayName"] = "Prediction Bar",
-                },
-            },
-            ["configurable"] = true,
+            ["configurable"] = false,
         }
+
     };
 end
 

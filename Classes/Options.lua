@@ -1,10 +1,11 @@
 local SP = SmoothyPlates
 local Utils = SP.Utils
 
+
+
 SP.hookOnInit(function() 
 	handleSharedMedia()
 	SP.Ace.Console:RegisterChatCommand("smp", handleChatCommand)
-
 	-- SP.Ace.Timer.ScheduleTimer({}, function() showLayoutGUI() end, 2)
 end)
 
@@ -75,6 +76,7 @@ function handleSharedMedia()
 
 end
 
+
 function createOptionFrame()
 	local optionsFrame = SP.Ace.GUI:Create("Frame")
 	optionsFrame:SetTitle("SmoothyPlates Options")
@@ -88,32 +90,44 @@ function createOptionFrame()
 	scrollFrame:SetWidth(270)
 	scrollFrame:SetHeight(330)
 
-	for key, category in pairs(SP.db) do
+	-- use default config 
+	-- so we have control over what will be shown in the options
+	-- otherwise old option (i.e.: old modules) will still be shown
+	local defaultConfig = SP.getDefaultConfig()
+	for key, category in pairs(defaultConfig) do
 		if category.configurable then
 			local categoryGroup = SP.Ace.GUI:Create("InlineGroup")
 			categoryGroup:SetTitle(category.displayName)
 
+			local dbOptions = SP.db[key].options
 			for key, option in pairs(category.options) do
 				local type = option.type
 				local widget;
 
+				-- set db options not options from default config
+				local optionValue = dbOptions[key].value
+				local setValue = function(newValue)
+					dbOptions[key].value = newValue
+					Utils.tprint(dbOptions)
+				end
+
 				if type == "BOOL" then
 					widget = SP.Ace.GUI:Create("CheckBox")
 					widget:SetLabel(option.displayName)
-					widget:SetValue(option.value)
-					widget:SetCallback("OnValueChanged", function(widget, event, value) option.value = value; end)
+					widget:SetValue(optionValue)
+					widget:SetCallback("OnValueChanged", function(widget, event, value) setValue(value) end)
 				elseif type == "BAR" then
 					widget = SP.Ace.GUI:Create("LSM30_Statusbar")
 					widget.list = sharedMedia:HashTable("statusbar")
 					widget.SetLabel(widget, option.displayName)
-					widget.SetValue(widget, option.value)
-					widget:SetCallback("OnValueChanged", function(dropdown, event, value) dropdown.SetValue(dropdown, value); option.value = value; end)
+					widget.SetValue(widget, optionValue)
+					widget:SetCallback("OnValueChanged", function(dropdown, event, value) dropdown.SetValue(dropdown, value); setValue(value) end)
 				elseif type == "FONT" then
 					widget = SP.Ace.GUI:Create("LSM30_Font")
 					widget.list = sharedMedia:HashTable("font")
 					widget.SetLabel(widget, option.displayName)
-					widget.SetValue(widget, option.value)
-					widget:SetCallback("OnValueChanged", function(dropdown, event, value) dropdown.SetValue(dropdown, value); option.value = value; end)
+					widget.SetValue(widget, optionValue)
+					widget:SetCallback("OnValueChanged", function(dropdown, event, value) dropdown.SetValue(dropdown, value); setValue(value) end)
 				else end
 				
 				if widget then

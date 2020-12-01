@@ -2,13 +2,13 @@ local SP = SmoothyPlates
 local Utils = SP.Utils
 local Silences = SP.Addon:NewModule("Silences")
 
-local activeSilences = {}
-local UnitGUID = UnitGUID
 local GetTime = GetTime
 local GetSpellInfo = GetSpellInfo
 local getPlateByGUID = SP.Nameplates.getPlateByGUID
 
 local InterruptTexture
+
+local activeSilences = {}
 
 function Silences:OnEnable()
     InterruptTexture = GetSpellTexture(47528)
@@ -18,15 +18,10 @@ function Silences:OnEnable()
     SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_REMOVED", "UNIT_REMOVED")
     SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_CAST_START", "UNIT_CAST_START")
     SP.callbacks.RegisterCallback(self, "BEFORE_SP_UNIT_CHANNEL_START", "UNIT_CAST_START")
-    SP.callbacks.RegisterCallback(self, "SP_PLAYER_ENTERING_WORLD")
 
     self.cc = LibStub("LibCC-1.0")
     self.cc.RegisterCallback(self, "ENEMY_SILENCE")
     self.cc.RegisterCallback(self, "ENEMY_SILENCE_FADED")
-end
-
-function Silences:SP_PLAYER_ENTERING_WORLD()
-    activeSilences = {} -- dont forget to clean up, kids
 end
 
 function Silences:CreateElement_SilenceFrame(event, plate)
@@ -54,93 +49,76 @@ function Silences:CreateElement_SilenceFrame(event, plate)
     sp.SilenceFrame:Hide()
 end
 
-function Silences:ENEMY_SILENCE(event, destGUID, sourceGUID, spellID)
-    -- if timeForCounter is not nil the silence is an interrupt
-    -- and the time cant be determined so we use 2.8 seconds
-    -- because some interrupts only last 2 seconds but the majority 3 seconds
-
-    if not activeSilences[destGUID] then activeSilences[destGUID] = {} end
-    if spellID == -1 then
-        activeSilences[destGUID][spellID] = GetTime() + 2.8; -- time the unit was countered + counter duration
+function Silences:ENEMY_SILENCE(event, destGUID, sourceGUID, spellId)
+    if spellId == -1 then
+        -- time the unit was countered + counter duration
+        activeSilences[destGUID] = { expires = GetTime() + 2.8 }
     else
-        activeSilences[destGUID][spellID] = true;
+        activeSilences[destGUID] = { spellId = spellId }
     end
 
     self:ApplySilence(destGUID)
 end
 
 function Silences:ENEMY_SILENCE_FADED(event, destGUID, sourceGUID, spellID)
-    if activeSilences[destGUID] and activeSilences[destGUID][spellID] then
-        activeSilences[destGUID][spellID] = nil
-    end
-
-    if activeSilences[destGUID] then
-        local silenceCount = 0
-        for i in ipairs(activeSilences[destGUID]) do silenceCount = silenceCount + 1 end
-        if silenceCount == 0 then activeSilences[destGUID] = nil end
-    end
-
+    activeSilences[destGUID] = nil
     self:ApplySilence(destGUID)
 end
 
 local getUnitDebuffByName = Utils.getUnitDebuffByName
 
-function Silences:ApplySilence(guid, forceHide)
+function Silences:ApplySilence(guid, plate, forceHide)
+    if not plate then 
+        plate = getPlateByGUID(guid)
+        if not plate then return end
+    end
     local currSilence = activeSilences[guid]
-    local plate = getPlateByGUID(guid)
 
+    local smp = plate.SmoothyPlate;
     if currSilence and not forceHide then
-        if plate then
-            local expires, icon, duration = 0, nil, 0
-            local _, iconN, durationN, expiresNew, timeModN = nil, 0, 0, 0
+        local expires, icon, duration = 0, nil, 0
+        local _, iconN, durationN, expiresNew, timeModN = nil, 0, 0, 0
 
-            for k,v in pairs(activeSilences[guid]) do
-                if v then
-                    if k == -1 then
-                        iconN, durationN, expiresNew, timeModN = InterruptTexture, 2.8, v, 1
-                    else
-                        local spellName = GetSpellInfo(k);
-                        _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN = getUnitDebuffByName(plate.SmoothyPlate.unitid, spellName)
-                    end
-
-                    if expiresNew then -- to be safe if the stun-debuff does not exists on the unit (for whatever cases)
-                        local exNew = (expiresNew - GetTime()) / timeModN -- timeMod for some Time-Shit accuracy (holy shat i dont want to know in wich cases)
-                        if exNew > expires then
-                            expires = exNew
-                            icon = iconN
-                            duration = durationN - 0.15  --substract 0.1 so the cooldown bling will be visible
-                        end
-                    end
-                end
-            end
-            _ = nil
-            if duration == 0 or not plate.SmoothyPlate.sp.SilenceFrame then return end
-
-            plate.SmoothyPlate.sp.SilenceFrame.tex:SetTexture(icon)
-            plate.SmoothyPlate.sp.SilenceFrame.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-
-            plate.SmoothyPlate.sp.SilenceFrame.cd:SetCooldown(GetTime() - (duration-expires), duration)
-
-            plate.SmoothyPlate.sp.SilenceFrame:Show()
+        if currSilence.spellId then
+            local spellName = GetSpellInfo(currSilence.spellId);
+            _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN = getUnitDebuffByName(smp.unitid, spellName)
+        else
+            iconN, durationN, expiresNew, timeModN = InterruptTexture, 2.8, currSilence.expires, 1
         end
-    else
-        if plate then
-            if plate.SmoothyPlate.sp.SilenceFrame then
-                plate.SmoothyPlate.sp.SilenceFrame:Hide()
+
+        if expiresNew then -- to be safe if the stun-debuff does not exists on the unit (for whatever cases)
+            local exNew = (expiresNew - GetTime()) / timeModN -- timeMod for some Time-Shit accuracy (i dont want to know in wich cases)
+            if exNew > expires then
+                expires = exNew
+                icon = iconN
+                duration = durationN - 0.15  --substract 0.1 so the cooldown bling will be visible
             end
+        end
+        
+        if duration == 0 or not smp.sp.SilenceFrame then return end
+
+        smp.sp.SilenceFrame.tex:SetTexture(icon)
+        smp.sp.SilenceFrame.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+        smp.sp.SilenceFrame.cd:SetCooldown(GetTime() - (duration-expires), duration)
+
+        smp.sp.SilenceFrame:Show()
+    else
+        if smp.sp.SilenceFrame then
+            smp.sp.SilenceFrame:Hide()
         end
     end
 end
 
 function Silences:UNIT_CAST_START(event, plate)
-    activeSilences[UnitGUID(plate.SmoothyPlate.unitid)] = {} -- remove all silences for this unit (cause if a cast started the unit cant be silenced...)
-    self:ApplySilence(UnitGUID(plate.SmoothyPlate.unitid))
+    activeSilences[plate.SmoothyPlate.guid] = nil
+    self:ApplySilence(plate.SmoothyPlate.guid)
 end
 
 function Silences:UNIT_ADDED(event, plate)
-    self:ApplySilence(UnitGUID(plate.SmoothyPlate.unitid))
+    self:ApplySilence(plate.SmoothyPlate.guid)
 end
 
 function Silences:UNIT_REMOVED(event, plate)
-    self:ApplySilence(UnitGUID(plate.SmoothyPlate.unitid), true)
+    self:ApplySilence(plate.SmoothyPlate.guid, plate, true)
 end

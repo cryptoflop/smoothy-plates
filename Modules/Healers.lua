@@ -11,9 +11,9 @@ local healerclasses = {
 	[270] = "Monk: Mistweaver"
 }
 
--- Stolen from Healers have to Die | THANX
-local ONLY_HEALER_SPELLS = {
-     -- Priests
+-- Stolen from Healers have to Die
+local onlyHealerSpellIds = {
+    -- Priests
     --      Discipline
     [047540] = "PRIEST", -- Penance
     [109964] = "PRIEST", -- Spirit shell -- not seen in disc
@@ -68,7 +68,6 @@ local ONLY_HEALER_SPELLS = {
 
 function Healers:OnEnable()
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     SP.callbacks.RegisterCallback(self, "AFTER_SP_CREATION", "CreateElement_HealerIcon")
     SP.callbacks.RegisterCallback(self, "AFTER_SP_UNIT_ADDED", "UNIT_ADDED")
@@ -108,15 +107,12 @@ local UnitGUID = UnitGUID
 local getPlateByGUID = SP.Nameplates.getPlateByGUID
 
 function Healers:UNIT_ADDED(event, plate)
-    local guid = UnitGUID(plate.SmoothyPlate.unitid)
-    if healerGUIDs[guid] then
-        if getPlateByGUID(guid) then
-            plate.SmoothyPlate.sp.HealerIcon:Show()
-        else
-            plate.SmoothyPlate.sp.HealerIcon:Hide()
-        end
+    local smp = plate.SmoothyPlate
+    if healerGUIDs[smp.guid] then
+        smp.sp.HealerIcon:Show()
+    else
+        smp.sp.HealerIcon:Hide()
     end
-
 end
 
 function Healers:UNIT_REMOVED(event, plate)
@@ -124,30 +120,33 @@ function Healers:UNIT_REMOVED(event, plate)
 end
 
 function Healers:COMBAT_LOG_EVENT_UNFILTERED(event, timeStamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool, auraType)
+    local 
+        timeStamp, eventType, hideCaster, 
+        sourceGUID, sourceName, sourceFlags, 
+        sourceRaidFlags, destGUID, destName, 
+        destFlags, destRaidFlags, spellID, 
+        spellName, spellSchool, auraType
+        = CombatLogGetCurrentEventInfo()
+
     if not CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or not spellID or not sourceGUID then return end
 
     if healerGUIDs[sourceGUID] then return end
 
-    if ONLY_HEALER_SPELLS[spellID] then
+    if onlyHealerSpellIds[spellID] then
         healerGUIDs[sourceGUID] = true;
-    else return end
-
-    local plate = getPlateByGUID(sourceGUID)
-    if plate then
-        plate.SmoothyPlate.sp.HealerIcon:Show()
+        local plate = getPlateByGUID(sourceGUID)
+        if plate then
+            plate.SmoothyPlate.sp.HealerIcon:Show()
+        end
     end
-end
-
-function Healers:PLAYER_ENTERING_WORLD()
-    healerGUIDs = {}
 end
 
 function Healers:isHealer(specId)
 	if not specId then return false end
 
-	if not healerclasses[specId] then
-		return false
-	else
-		return true
-	end
+    if healerclasses[specId] then 
+        return true
+    else
+        return false
+    end
 end

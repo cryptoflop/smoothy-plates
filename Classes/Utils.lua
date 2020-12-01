@@ -149,8 +149,8 @@ end
 local UnitDebuff = UnitDebuff;
 Utils.getUnitDebuffByName = function(unitid, spellName) 
 	for i=1,40 do 
-		local d = UnitDebuff(unitid, i);
-		if d == spellName then 
+		local name = UnitDebuff(unitid, i);
+		if name == spellName then 
 			return UnitDebuff(unitid, i);
 		end
 	end
