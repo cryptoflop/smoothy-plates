@@ -144,16 +144,17 @@ Utils.print = function(msg)
 	print("|cffff0020SmoothyPlates|r: " .. msg)
 end
 
--- GAME INFO --
+-- Game Functions --
 
-local UnitDebuff = UnitDebuff;
-Utils.getUnitDebuffByName = function(unitid, spellName) 
-	for i=1,40 do 
-		local name = UnitDebuff(unitid, i);
-		if name == spellName then 
-			return UnitDebuff(unitid, i);
-		end
-	end
+local FindAura = AuraUtil.FindAura
+
+local AuraById = function(...)
+	local spellId, id = select(1, ...), select(13, ...)
+	return id == spellId
+end
+
+Utils.getDebuffById = function(unit, spellId)
+	return FindAura(AuraById, unit, "HARMFUL", spellId)
 end
 
 -- UI --
@@ -196,30 +197,37 @@ Utils.addBorder = function(frame)
     frame:SetBackdropColor(0,0,0,0.6)
 end
 
+local borderSides = { "t", "b", "l", "r" }
+Utils.setBorderColor = function(borderParent, r, g, b, a)
+	for i, v in pairs(borderSides) do
+		borderParent[v]:SetBackdropColor(r, g, b, a)
+	end
+end
+
 Utils.addSingleBorders = function(parent, r, g, b, a)
 	local size = 1;
 	parent.l = Utils.createSimpleFrame(nil, parent, true);
 	parent.l:SetSize(size, parent:GetHeight())
 	parent.l:SetPoint("LEFT", 0, 0)
-	parent.l:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
+	parent.l:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     parent.l:SetBackdropColor(r,g,b,a)
 
 	parent.r = Utils.createSimpleFrame(nil, parent, true);
 	parent.r:SetSize(size, parent:GetHeight())
 	parent.r:SetPoint("RIGHT", 0, 0)
-	parent.r:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
+	parent.r:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     parent.r:SetBackdropColor(r,g,b,a)
 
 	parent.t = Utils.createSimpleFrame(nil, parent, true);
 	parent.t:SetSize(parent:GetWidth(), size)
 	parent.t:SetPoint("TOP", 0, 0)
-	parent.t:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
+	parent.t:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     parent.t:SetBackdropColor(r,g,b,a)
 
 	parent.b = Utils.createSimpleFrame(nil, parent, true);
 	parent.b:SetSize(parent:GetWidth(), size)
 	parent.b:SetPoint("BOTTOM", 0, 0)
-	parent.b:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
+	parent.b:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
     parent.b:SetBackdropColor(r,g,b,a)
 end
 

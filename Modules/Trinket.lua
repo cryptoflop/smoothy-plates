@@ -121,8 +121,10 @@ function Trinket:ApplyTrinket(guid, plate, forceHide)
     end
 
     local smp = plate.SmoothyPlate
-    if not inArena then smp.sp.TrinketIcon:Hide() return end
-    if forceHide then smp.sp.TrinketIcon:Hide() return end
+    if not inArena or forceHide or not UnitIsPlayer(smp.sp.unitid) then 
+        smp.sp.TrinketIcon:Hide()
+        return
+    end
 
     if playerUsedTrinket[guid] then
         smp.sp.TrinketIcon.cd:SetCooldown(GetTime() - playerUsedTrinket[guid], 180)

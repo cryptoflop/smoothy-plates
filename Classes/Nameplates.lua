@@ -4,18 +4,19 @@ local Utils = SP.Utils
 local _, scale = GetPhysicalScreenSize()
 SP.Vars.perfectScale = 768/scale;
 
-SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_ADDED", function(e, unitid) NAME_PLATE_UNIT_ADDED(unitid) end)
-SP.Ace.Event.RegisterEvent(SP, "NAME_PLATE_UNIT_REMOVED", function(e, unitid) NAME_PLATE_UNIT_REMOVED(unitid) end)
-
 local GuidToId = {};
+
+function setCVars()
+	SetCVar('nameplateMinScale', 1)
+	SetCVar('nameplateMaxScale', 1)
+	SetCVar('nameplateGlobalScale', 1)
+end
 
 -- other addons may set the nameplate scale after loading
 SP.hookOnInit(function()
-	SP.Ace.Timer.ScheduleTimer({}, function() 
-		SetCVar('nameplateGlobalScale', 1)
-	end, 1)
+	SP.Ace.Timer:ScheduleTimer(setCVars, 1)
 end)
-SetCVar('nameplateGlobalScale', 1)
+setCVars()
 
 local GetNamePlateForUnit, GetNamePlates = C_NamePlate.GetNamePlateForUnit, C_NamePlate.GetNamePlates
 local UnitIsUnit = UnitIsUnit
@@ -49,31 +50,29 @@ function plateIsSupported(unitid)
 	return true
 end
 
-hooksecurefunc(NamePlateDriverFrame, "AcquireUnitFrame", function(plate)
-	if not plate.isModified then
-		plate.isModified = true
-		hooksecurefunc(plate.UnitFrame, "Show", function(self)
-			if plateIsSupported(self.unit) then
-				self:Hide()
+function hookOnUnitFrame(plate)
+	if plate.UnitFrame and not plate.UnitFrame._smp_modified then
+		local hideUnitFrame = function()
+			if plateIsSupported(plate.UnitFrame.unit) then
+				plate.UnitFrame:Hide()
 			end
-		end)
+		end
+		plate.UnitFrame.smp_modified = true
+		plate.UnitFrame:HookScript('OnShow', hideUnitFrame)
+		hideUnitFrame()
 	end
-end)
+end
 
-function BypassShow() return true end
+local EventHandler = {}
 
-function NAME_PLATE_UNIT_ADDED(unitid)
+function EventHandler:NAME_PLATE_UNIT_ADDED(event, unitid)
 	if plateIsSupported(unitid) then
 		local plate = GetNamePlateForUnit(unitid)
 		if not plate then return end
-		
-		if plate.UnitFrame then
-			-- hide blizzard frame
-			plate.UnitFrame:Hide()
-		end
 
 		if not plate.SmoothyPlate then
 			SP.SmoothyPlate(plate);
+			hookOnUnitFrame(plate)
 			SP.callbacks:Fire("AFTER_SP_CREATION", plate)
 		end
 
@@ -83,7 +82,7 @@ function NAME_PLATE_UNIT_ADDED(unitid)
 	end
 end
 
-function NAME_PLATE_UNIT_REMOVED(unitid)
+function EventHandler:NAME_PLATE_UNIT_REMOVED(event, unitid)
 	local plate = GetNamePlateForUnit(unitid);
 	if not plate then return end
 
@@ -94,7 +93,7 @@ function NAME_PLATE_UNIT_REMOVED(unitid)
 	end
 end
 
-local EventHandler = {}
+
 
 function EventHandler:UNIT_HEALTH(event, unitid)
 	if not unitid then return end

@@ -365,17 +365,26 @@ function SmoothyPlate:UpdateHealth()
     self:UpdateHealAbsorbPrediction()
 end
 
+local UnitIsTapDenied = UnitIsTapDenied
+
 function SmoothyPlate:UpdateHealthColor()
     if not self.unitid then return end
 
     local r,g,b;
-    local classFileName = select(2, UnitClass(self.unitid))
 
-    if UnitIsPlayer(self.unitid) and classFileName then
+    if UnitIsPlayer(self.unitid) then
+        local classFileName = select(2, UnitClass(self.unitid))
         local color = RAID_CLASS_COLORS[classFileName]
-        r,g,b = color.r, color.g, color.b
+        if color then
+            r,g,b = color.r, color.g, color.b
+        end
     else
-        r,g,b = UnitSelectionColor(self.unitid)
+        if UnitIsTapDenied(self.unitid) then
+            -- tapped by other players, use gray
+            r, g, b = 0.6, 0.6, 0.6
+        else
+            r,g,b = UnitSelectionColor(self.unitid)
+        end
     end
 
     if r == nil or g == nil or b == nil then
@@ -540,7 +549,7 @@ function SmoothyPlate:StartCasting(channeled)
     local name, text, texture, startTime, endTime, _, _, notInterruptible, updateFunc;
     local bar = self.sp.CastBar.bar;
     if channeled then
-        name, text, texture, startTime, endTime, _, _, notInterruptible = UnitChannelInfo(self.unitid)
+        name, text, texture, startTime, endTime, _, notInterruptible = UnitChannelInfo(self.unitid)
         updateFunc = function() OnUpdateCastBarReverse(bar, startTime, endTime) end
     else
         name, text, texture, startTime, endTime, _, _, notInterruptible = UnitCastingInfo(self.unitid)

@@ -13,10 +13,15 @@ function Addon:OnInitialize()
 
 	-- Modules --
 	for name, module in pairs(SP.db.modules.options) do
-		if module.value then
-			self:EnableModule(name)
+		local moduleRef = self:GetModule(name, true);
+		if moduleRef then
+			if module.value then
+				moduleRef:Enable()
+			else
+				moduleRef:Disable()
+			end
 		else
-			self:DisableModule(name)
+			-- TODO: remove module from options in db
 		end
 	end
 

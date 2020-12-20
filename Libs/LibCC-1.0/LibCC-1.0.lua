@@ -5,7 +5,6 @@ LibCC.callbacks = LibStub("CallbackHandler-1.0"):New(LibCC)
 LibCC.events = LibStub("AceEvent-3.0", LibCC)
 LibCC.timer = LibStub("AceTimer-3.0", LibCC)
 
--- TODO: use DRData instead of own list
 local CCSpells = {
 
 	--[[ TAUNT ]]--
@@ -230,9 +229,9 @@ local SilenceSpells = {
 	-- Demon Hunter
 	[204490] = 202137, -- Sigil of Silence
 	-- Druid
-	--[81261] = true, -- Solar Beam (No DR)
+	[81261] = true, -- Solar Beam (No DR)
 	-- Hunter
-	[202933] = 202914, -- Spider Sting
+	[202933] = true, -- Spider Sting
 	-- Paladin
 	[ 31935] = true, -- Avenger's Shield
 	[217824] = 31935, -- Shield of Virtue
@@ -245,8 +244,39 @@ local SilenceSpells = {
 	[196364] = true, -- Unstable Affliction
 }
 
+-- [id] = seconds
+local kickSpells = {
+	[0] = 3, 	  -- Default (3 seconds)
+	[2139] = 6,   -- Counterspell
+	[19647] = 6,  -- Spell Lock
+	[47528] = 3,  -- Mind Freeze
+	[1766] = 5,   -- Kick
+	[93985] = 4,  -- Skull Bash
+	[96231] = 4,  -- Rebuke
+	[6552] = 4,   -- Pummel
+	[57994] = 3,  -- Wind Shear
+	[116705] = 4, -- Spear Hand Strike 
+	[147362] = 3 -- Counter Shot
+}
+
 local activeStunns = {}
 local activeSilences = {}
+
+function isCC(spellId)
+	return CCSpells[spellId] or false
+end
+
+function isSilence(spellId)
+	return SilenceSpells[spellId] or false
+end
+
+function isKick(spellId)
+	if kickSpells[spellId] then
+		return true
+	else
+		return false
+	end
+end
 
 local COMBATLOG_FILTER_HOSTILE_UNITS, COMBATLOG_FILTER_HOSTILE_PLAYERS, COMBATLOG_FILTER_NEUTRAL_UNITS = COMBATLOG_FILTER_HOSTILE_UNITS, COMBATLOG_FILTER_HOSTILE_PLAYERS, COMBATLOG_FILTER_NEUTRAL_UNITS
 
@@ -255,42 +285,53 @@ function private_COMBAT_LOG_EVENT_UNFILTERED(event)
         timeStamp, eventType, hideCaster, 
         sourceGUID, sourceName, sourceFlags, 
         sourceRaidFlags, destGUID, destName, 
-        destFlags, destRaidFlags, spellID, 
+        destFlags, destRaidFlags, spellId, 
         spellName, spellSchool, auraType
 		= CombatLogGetCurrentEventInfo()
-	
-	if not auraType or not spellID or not eventType or not destGUID or not sourceGUID then return end
+
+	if not auraType or not spellId or not eventType or not destGUID or not sourceGUID then return end
 
 	if CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_PLAYERS) or CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_HOSTILE_UNITS) or CombatLog_Object_IsA(destFlags, COMBATLOG_FILTER_NEUTRAL_UNITS) then
 		if not activeSilences[destGUID] then activeSilences[destGUID] = {} end
 		if not activeStunns[destGUID] then activeStunns[destGUID] = {} end
 
 		if eventType == "SPELL_AURA_APPLIED" and auraType == "DEBUFF" then
-			if LibCC:isSilence(spellID) then
-				activeSilences[destGUID][spellID] = true
-				LibCC.callbacks:Fire("ENEMY_SILENCE", destGUID, sourceGUID, spellID)
+			if isSilence(spellId) then
+				activeSilences[destGUID][spellId] = true
+				LibCC.callbacks:Fire("ENEMY_SILENCE", destGUID, sourceGUID, spellId)
 				return
 			end
-			if LibCC:isCC(spellID) then
-				activeStunns[destGUID][spellID] = true
-				LibCC.callbacks:Fire("ENEMY_STUN", destGUID, sourceGUID, spellID)
+
+			if isCC(spellId) then
+				activeStunns[destGUID][spellId] = true
+				LibCC.callbacks:Fire("ENEMY_STUN", destGUID, sourceGUID, spellId)
+				return
 			end
 		elseif eventType == "SPELL_AURA_REMOVED" then
-
-			if activeSilences[destGUID][spellID] then
-				activeSilences[destGUID][spellID] = nil
-				LibCC.callbacks:Fire("ENEMY_SILENCE_FADED", destGUID, sourceGUID, spellID)
+			if activeSilences[destGUID][spellId] then
+				activeSilences[destGUID][spellId] = nil
+				LibCC.callbacks:Fire("ENEMY_SILENCE_FADED", destGUID, sourceGUID, spellId)
 				return
 			end
 
-			if activeStunns[destGUID][spellID] then
-				activeStunns[destGUID][spellID] = nil
-				LibCC.callbacks:Fire("ENEMY_STUN_FADED", destGUID, sourceGUID, spellID)
+			if activeStunns[destGUID][spellId] then
+				activeStunns[destGUID][spellId] = nil
+				LibCC.callbacks:Fire("ENEMY_STUN_FADED", destGUID, sourceGUID, spellId)
+				return
 			end
-
 		elseif eventType == "SPELL_INTERRUPT" then
-			LibCC.callbacks:Fire("ENEMY_SILENCE", destGUID, sourceGUID, -1)
-			LibCC.timer:ScheduleTimer(function() LibCC.callbacks:Fire("ENEMY_SILENCE_FADED", destGUID, sourceGUID, -1) end, 2.8)
+			if isSilence(spellId) then
+				-- return when interrupted with a silence since ENEMY_SILENCE was fired before
+				return
+			end
+			local spellIdLocal = spellId or 0
+			local duration = kickSpells[spellIdLocal]
+			if not duration then
+				print("[Lib-CC] Interrupt with a unknown spell: " .. spellIdLocal)
+				return
+			end
+			LibCC.callbacks:Fire("ENEMY_KICK", destGUID, sourceGUID, spellIdLocal, duration)
+			LibCC.timer:ScheduleTimer(function() LibCC.callbacks:Fire("ENEMY_KICK_FADED", destGUID, sourceGUID, spellIdLocal) end, duration)
 		end
 	end
 end
@@ -303,11 +344,6 @@ end
 LibCC.events:RegisterEvent("PLAYER_ENTERING_WORLD", private_PLAYER_ENTERING_WORLD)
 LibCC.events:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", private_COMBAT_LOG_EVENT_UNFILTERED)
 
-
-function LibCC:isCC( spellID )
-	return CCSpells[spellID] or false
-end
-
-function LibCC:isSilence( spellID )
-	return SilenceSpells[spellID] or false
-end
+LibCC.isCC = isCC
+LibCC.isSilence = isSilence
+LibCC.isKick = isKick

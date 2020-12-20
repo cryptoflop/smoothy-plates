@@ -39,18 +39,18 @@ end
 
 local getPlateByGUID = SP.Nameplates.getPlateByGUID
 
-function Stunns:ENEMY_STUN(event, destGUID, sourceGUID, spellID)
+function Stunns:ENEMY_STUN(event, destGUID, sourceGUID, spellId)
     if not activeStunns[destGUID] then
         activeStunns[destGUID] = {}
     end
-    activeStunns[destGUID][spellID] = true
+    activeStunns[destGUID][spellId] = true
 
     self:ApplyStun(destGUID)
 end
 
-function Stunns:ENEMY_STUN_FADED(event, destGUID, sourceGUID, spellID)
-    if activeStunns[destGUID] and activeStunns[destGUID][spellID] then
-        activeStunns[destGUID][spellID] = nil
+function Stunns:ENEMY_STUN_FADED(event, destGUID, sourceGUID, spellId)
+    if activeStunns[destGUID] and activeStunns[destGUID][spellId] then
+        activeStunns[destGUID][spellId] = nil
     end
 
     if activeStunns[destGUID] then
@@ -66,50 +66,54 @@ function Stunns:ENEMY_STUN_FADED(event, destGUID, sourceGUID, spellID)
     self:ApplyStun(destGUID)
 end
 
-local getUnitDebuffByName = Utils.getUnitDebuffByName
+
+local getDebuffById = Utils.getDebuffById
 
 function Stunns:ApplyStun(guid, plate, forceHide)
     if not plate then 
         plate = getPlateByGUID(guid)
         if not plate then return end
     end
-    local currStunn = activeStunns[guid]
+    local currStunns = activeStunns[guid]
 
     local smp = plate.SmoothyPlate;
-    if currStunn and not forceHide then
+    if currStunns and not forceHide then
         local expires, icon, duration = 0, nil, 0
-        local _, iconN, durationN, expiresNew, timeModN = nil, 0, 0, 0
-        for k, v in pairs(activeStunns[guid]) do
-            if v then
-                local spellName = GetSpellInfo(k)
-                _, iconN, _, _, durationN, expiresNew, _, _, _, _, _, _, _, _, timeModN =
-                    getUnitDebuffByName(smp.unitid, spellName)
-                if expiresNew then -- to be safe if the stun-debuff does not exists on the unit (for whatever reasons)
-                    local exNew = (expiresNew - GetTime()) / timeModN
-                    if exNew > expires then
-                        expires = exNew
+        local _, name, iconN, durationN, expiresN, timeMod = nil, nil, 0, 0, 0, 0
+
+        -- get the stun aura with the highest duration
+        for spellId, value in pairs(currStunns) do
+            if value then
+                -- check if aura exists
+                name, iconN, _, _, durationN, expiresN, _, _, _, _, _, _, _, _, timeMod = getDebuffById(smp.unitid, spellId)
+                if name == nil then
+                    -- aura is not active on target (faded)
+                    currStunns[spellId] = nil
+                else
+                    -- check if duration is higher
+                    local expiresNScaled = (expiresN - GetTime()) / timeMod
+                    if expiresNScaled > expires then
+                        expires = expiresNScaled
                         icon = iconN
                         duration = durationN
                     end
                 end
             end
         end
-        _ = nil
-        if duration == 0 or not smp.sp.StunnFrame then
+
+        if duration > 0 then
+            -- show stun frame
+            smp.sp.StunnFrame.tex:SetTexture(icon)
+            smp.sp.StunnFrame.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+            smp.sp.StunnFrame.cd:SetCooldown(GetTime() - (duration - expires), duration)
+
+            smp.sp.StunnFrame:Show()
             return
         end
-
-        smp.sp.StunnFrame.tex:SetTexture(icon)
-        smp.sp.StunnFrame.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-
-        smp.sp.StunnFrame.cd:SetCooldown(GetTime() - (duration - expires), duration)
-
-        smp.sp.StunnFrame:Show()
-    else
-        if smp.sp.StunnFrame then
-            smp.sp.StunnFrame:Hide()
-        end
     end
+
+    smp.sp.StunnFrame:Hide()
 end
 
 function Stunns:UNIT_ADDED(event, plate)
