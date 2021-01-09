@@ -356,7 +356,7 @@ function SmoothyPlate:ConstructElement_RaidIcon(parent)
 	SetRaidTargetIconTexture(frameRI.tex, 8)
 
 	self:hookFrame('RAID_ICON', frameRI)
-	frameRI.tex:Hide()
+	frameRI:Hide()
 
 	return frameRI
 end
@@ -513,11 +513,11 @@ function SmoothyPlate:UpdateRaidTargetIcon()
 		return
 	end
 
-	local icon = self.sp.RaidIcon.tex
+	local icon = self.sp.RaidIcon
 	local index = GetRaidTargetIndex(self.unitid)
 
 	if index then
-		SetRaidTargetIconTexture(icon, index)
+		SetRaidTargetIconTexture(icon.tex, index)
 		icon:Show()
 	else
 		icon:Hide()

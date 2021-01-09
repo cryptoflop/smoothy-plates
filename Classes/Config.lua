@@ -159,13 +159,14 @@ SmoothyPlates.getDefaultConfig = function()
 				['size'] = 12
 			},
 			['RAID_ICON'] = {
-				['y'] = 80,
+				['y'] = 100,
 				['x'] = 0,
 				['anchor'] = 'TOP',
 				['height'] = 42,
 				['opacity'] = 1,
-				['parent'] = 'HealthBar',
-				['width'] = 42
+				['parent'] = 'Name',
+				['width'] = 42,
+				['level'] = 2
 			},
 			['POWER'] = {
 				['y'] = -3,
