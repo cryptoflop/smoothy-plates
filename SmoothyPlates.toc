@@ -1,8 +1,8 @@
 ## Interface: 90002
-## Title: SmoothyPlates by |cffff0020Vènomstrikè|r
-## Notes: Smoothy Plates :)
+## Title: SmoothyPlates
+## Notes: Smoothy Plates
 ## Author: Max David aka Vènomstrikè
-## Version: 5.3.0
+## Version: 6.0.0
 ## SavedVariablesPerCharacter: SPDB
 
 Libs\LibStub\LibStub.lua
@@ -18,8 +18,9 @@ Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\LibSharedMedia-3.0\lib.xml
 Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 Libs\LibSmoothStatusBar-1.0\LibSmoothStatusBar-1.0.lua
-Libs\LibCC-1.0\LibCC-1.0.lua
 Libs\LibButtonGlow-1.0\LibButtonGlow-1.0.lua
+Libs\LibInterrupt-1.0\LibInterrupt-1.0.lua
+
 
 Classes\Globals.lua
 Classes\Utils.lua
@@ -33,7 +34,7 @@ Classes\Options.lua
 
 SmoothyPlates.lua
 
-Modules\Silences.lua
-Modules\Stunns.lua
+Modules\Interrupts.lua
+Modules\Auras.lua
 Modules\Healers.lua
 Modules\Trinket.lua

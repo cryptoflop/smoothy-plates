@@ -1,0 +1,9 @@
+package-as: SmoothyPlates
+
+ignore:
+  - LICENSE
+  - README.md
+  - babelfish.lua
+  - TODO.txt
+  - .luacheckrc
+  - .pkgmeta

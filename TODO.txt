@@ -1,3 +1,2 @@
 TODO:
     - Heal predicts are not shown; should show a half transparent green heal prediction bar
-    - Change kick icon
