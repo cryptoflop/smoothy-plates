@@ -524,10 +524,6 @@ function Auras:CreateAllAuraSets(_, plate)
 	for _, set in pairs(activeAuraSets) do
 		self:CreateElement_AurasContainer(plate, set)
 	end
-
-	if plate.SmoothyPlate.debug then
-		self:AddDebugAuras(plate)
-	end
 end
 
 function Auras:CreateElement_AurasContainer(plate, set)
@@ -881,6 +877,10 @@ end
 
 function Auras:UNIT_ADDED(_, plate)
 	self:UpdateAuras(plate, plate.SmoothyPlate.guid)
+
+	if plate.SmoothyPlate.debug then
+		self:AddDebugAuras(plate)
+	end
 end
 
 function Auras:UNIT_REMOVED(_, plate)
@@ -896,6 +896,7 @@ function Auras:AddDebugAuras(plate)
 		self:ForEachAuraSet(aura, self.CreateAura, plate)
 	end
 	self:AlignAuras(plate, auras)
+	aurasForGuid[plate.SmoothyPlate.guid] = auras
 
 	-- pause every auraFrame
 	for _, set in pairs(activeAuraSets) do
