@@ -30,10 +30,11 @@ end
 
 _G.SmoothyPlates = {
 	Vars = {
-		currVersion = '6.0.0',
+		currVersion = '6.0.1',
 		ui = {
 			textures = textures,
 			colors = {
+				green = {0.132, 0.852, 0.123},
 				red = {0.852, 0.123, 0.123}
 			},
 			font = 'Interface\\Addons\\\\Media\\Font\\Purista-Medium.ttf',

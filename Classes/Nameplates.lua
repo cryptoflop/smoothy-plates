@@ -16,10 +16,9 @@ end
 SP.hookOnInit(
 	function()
 		SP.Ace.Timer:ScheduleTimer(setCVars, 2)
-		initHidingContions()
+		initHidingConditions()
 	end
 )
-setCVars()
 
 local GetNamePlateForUnit, GetNamePlates = C_NamePlate.GetNamePlateForUnit, C_NamePlate.GetNamePlates
 local UnitIsUnit = UnitIsUnit
@@ -71,7 +70,7 @@ end
 
 local hidingConditions = {}
 
-function initHidingContions()
+function initHidingConditions()
 	if SP.db.options.hideUnimportantPets then
 		local UnitIsPlayer, UnitPlayerControlled, UnitCreatureType = UnitIsPlayer, UnitPlayerControlled, UnitCreatureType
 		local checkCreature = function(unitid)

@@ -1070,6 +1070,11 @@ function Auras:customOptions()
 								end
 							end
 							table.remove(optionsTree[1].children, index)
+							-- remove from all aurasets as well
+							for _, as in pairs(customOptions.auraSets) do
+								if as.whitelists[listName] then as.whitelists[listName] = nil end
+								if as.blacklists[listName] then as.blacklists[listName] = nil end
+							end
 							tree:SelectByPath('SPELLS')
 							tree:RefreshTree()
 						end

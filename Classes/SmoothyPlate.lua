@@ -134,6 +134,7 @@ function SmoothyPlate._constructor(frame, debug)
 	for k, v in pairs(SmoothyPlate.elements) do
 		this.sp[k] = this['ConstructElement_' .. k](this, this.sp)
 		this.sp[k]:SetAlpha(Layout.GET(v, 'opacity'))
+		this.sp[k]:SetFrameLevel(Layout.GET(v, 'level') or 1)
 	end
 
 	for k, v in pairs(SmoothyPlate.elements) do
@@ -231,12 +232,10 @@ function SmoothyPlate:ConstructElement_HealthBar(parent)
 end
 
 function SmoothyPlate:ConstructElement_TargetIndicator(parent)
-	local frameT = Utils.createSimpleFrame('$parentTargetIndicator', parent, true)
+	local frameT = Utils.createSimpleFrame('$parentTargetIndicator', parent, false)
 
 	frameT:SetSize(Layout.HW('TARGET'))
 	frameT:SetPoint(Layout.AXY('TARGET'))
-	frameT:SetFrameLevel(2)
-	frameT:SetAlpha(Layout.GET('TARGET', 'opacity'))
 
 	-- frameT:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
 	-- frameT:SetBackdropColor(unpack(SP.Vars.ui.colors.red))
@@ -247,7 +246,8 @@ function SmoothyPlate:ConstructElement_TargetIndicator(parent)
 	frameT.tex:SetAllPoints()
 
 	-- frameT.tex:SetRotation(-0.785)
-	-- frameT.tex:SetVertexColor(unpack(SP.Vars.ui.colors.red));
+	frameT.tex:SetVertexColor(1, 1, 1)
+	frameT:Hide()
 
 	return frameT
 end
@@ -336,14 +336,20 @@ function SmoothyPlate:ConstructElement_AbsorbBar(parent)
 end
 
 function SmoothyPlate:ConstructElement_Name(parent)
-	local frameN = parent:CreateFontString(nil, 'OVERLAY')
+	local container = Utils.createSimpleFrame('$parentNameContainer', parent, true)
+	-- needs to have size to render text
+	container:SetSize(1, 1)
+
+	local frameN = container:CreateFontString(nil, 'OVERLAY')
+	frameN:SetPoint('CENTER', 0, 0)
 	frameN:SetFont(SP.Vars.ui.font, Layout.GET('NAME', 'size') * Layout.GET('GENERAL', 'scale'), 'OUTLINE')
 	frameN:SetJustifyH('LEFT')
 	frameN:SetShadowOffset(1, -1)
 	frameN:SetTextColor(1, 1, 1)
 	frameN:SetText('Name')
+	container.text = frameN
 
-	return frameN
+	return container
 end
 
 function SmoothyPlate:ConstructElement_RaidIcon(parent)
@@ -418,7 +424,7 @@ function SmoothyPlate:UpdateName()
 	end
 
 	local unitName = GetUnitName(self.unitid, false)
-	self.sp.Name:SetText(unitName)
+	self.sp.Name.text:SetText(unitName)
 end
 
 function SmoothyPlate:UpdateHealth()

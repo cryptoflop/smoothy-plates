@@ -430,7 +430,7 @@ function showLayoutGUI()
 				}
 				local sliderInfo = sliderValues[k]
 				if not sliderInfo then
-					sliderInfo = {min = -100, max = 100}
+					sliderInfo = {min = -150, max = 150}
 				end
 
 				widget:SetSliderValues(sliderInfo.min, sliderInfo.max, sliderInfo.step or 1)
@@ -469,7 +469,7 @@ function updateTestLayout(editorFrame)
 	fakePlate:SetPoint('CENTER', 0, 40)
 	fakePlate:SetFrameStrata('BACKGROUND')
 
-	fakePlate:SetScale(SP.Vars.perfectScale * 1.9737)
+	fakePlate:SetScale(SP.Vars.perfectScale * 1.57)
 
 	local sp = SP.SmoothyPlate(fakePlate, true)
 	SP.callbacks:Fire('AFTER_SP_CREATION', fakePlate)

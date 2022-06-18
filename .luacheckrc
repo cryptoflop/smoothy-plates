@@ -18,6 +18,7 @@ globals = {
 	'format',
 	'strrep',
 	-- wow api
+	'UnitIsEnemy',
 	'GetSpellTexture',
 	'GetTime',
 	'C_NamePlate',

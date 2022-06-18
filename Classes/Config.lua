@@ -98,7 +98,8 @@ SmoothyPlates.getDefaultConfig = function()
 				['x'] = 2,
 				['anchor'] = 'LEFT',
 				['opacity'] = 1,
-				['size'] = 10
+				['size'] = 10,
+				['level'] = 1
 			},
 			['HEALTH'] = {
 				['y'] = 0,
@@ -106,23 +107,18 @@ SmoothyPlates.getDefaultConfig = function()
 				['anchor'] = 'CENTER',
 				['opacity'] = 1,
 				['height'] = 32,
-				['width'] = 120
-			},
-			['HEALTH_TEXT'] = {
-				['y'] = -1,
-				['x'] = 0,
-				['anchor'] = 'CENTER',
-				['opacity'] = 1,
-				['size'] = 12
+				['width'] = 120,
+				['level'] = 2
 			},
 			['TARGET'] = {
-				['y'] = -2,
+				['y'] = -8,
 				['x'] = 0,
 				['anchor'] = 'BOTTOM',
-				['opacity'] = 0.8,
-				['height'] = 20,
-				['width'] = 120,
-				['parent'] = 'Name'
+				['opacity'] = 1,
+				['height'] = 40,
+				['width'] = 136,
+				['parent'] = 'Name',
+				['level'] = 1
 			},
 			['CAST'] = {
 				['y'] = -26,
@@ -131,7 +127,8 @@ SmoothyPlates.getDefaultConfig = function()
 				['height'] = 24,
 				['opacity'] = 1,
 				['parent'] = 'PowerBar',
-				['width'] = 120
+				['width'] = 120,
+				['level'] = 1
 			},
 			['CAST_ICON'] = {
 				['y'] = 0,
@@ -139,7 +136,8 @@ SmoothyPlates.getDefaultConfig = function()
 				['height'] = 24,
 				['opacity'] = 1,
 				['anchor'] = 'LEFT',
-				['width'] = 24
+				['width'] = 24,
+				['level'] = 1
 			},
 			['HEALER_ICON'] = {
 				['y'] = 0,
@@ -148,18 +146,20 @@ SmoothyPlates.getDefaultConfig = function()
 				['height'] = 18,
 				['opacity'] = 1,
 				['parent'] = 'HealthBar',
-				['width'] = 18
+				['width'] = 18,
+				['level'] = 1
 			},
 			['NAME'] = {
-				['y'] = 14,
+				['y'] = 8,
 				['x'] = 0,
 				['anchor'] = 'TOP',
 				['opacity'] = 1,
 				['parent'] = 'HealthBar',
-				['size'] = 12
+				['size'] = 12,
+				['level'] = 1
 			},
 			['RAID_ICON'] = {
-				['y'] = 100,
+				['y'] = 106,
 				['x'] = 0,
 				['anchor'] = 'TOP',
 				['height'] = 42,
@@ -176,7 +176,16 @@ SmoothyPlates.getDefaultConfig = function()
 				['height'] = 4,
 				['opacity'] = 1,
 				['anchor'] = 'BOTTOM',
-				['width'] = 120
+				['width'] = 120,
+				['level'] = 1
+			},
+			['HEALTH_TEXT'] = {
+				['y'] = -1,
+				['x'] = 0,
+				['anchor'] = 'CENTER',
+				['opacity'] = 1,
+				['size'] = 12,
+				['level'] = 1
 			},
 			['TRINKET'] = {
 				['y'] = 0,
