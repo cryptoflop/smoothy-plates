@@ -2,7 +2,7 @@
 ## Title: SmoothyPlates
 ## Notes: Smoothy Plates
 ## Author: Max David aka Vènomstrikè
-## Version: 6.0.2
+## Version: 6.0.1
 ## SavedVariablesPerCharacter: SPDB
 
 Libs\LibStub\LibStub.lua
