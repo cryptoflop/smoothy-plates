@@ -469,7 +469,7 @@ function updateTestLayout(editorFrame)
 	fakePlate:SetPoint('CENTER', 0, 40)
 	fakePlate:SetFrameStrata('BACKGROUND')
 
-	fakePlate:SetScale(SP.Vars.perfectScale * 1.57)
+	-- fakePlate:SetScale(SP.Vars.perfectScale * 1.57)
 
 	local sp = SP.SmoothyPlate(fakePlate, true)
 	SP.callbacks:Fire('AFTER_SP_CREATION', fakePlate)

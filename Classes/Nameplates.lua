@@ -1,15 +1,12 @@
 local SP = SmoothyPlates
 
-local _, scale = GetPhysicalScreenSize()
-SP.Vars.perfectScale = 768 / scale
-
 local GuidToId = {}
 
 function setCVars()
-	SetCVar('nameplateMinScale', 1)
-	SetCVar('nameplateMaxScale', 1)
-	SetCVar('nameplateGlobalScale', 1)
-	SetCVar('nameplateSelectedScale', 1)
+	-- SetCVar('nameplateMinScale', 1)
+	-- SetCVar('nameplateMaxScale', 1)
+	-- SetCVar('nameplateGlobalScale', 1)
+	-- SetCVar('nameplateSelectedScale', 1)
 end
 
 -- other addons may set the nameplate scale after loading

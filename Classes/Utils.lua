@@ -272,11 +272,11 @@ Utils.createTextureFrame = function(parent, w, h, a, x, y, alpha, defText, dx, d
 
 	if defText then
 		parent.tex:SetTexture(defText)
-		parent.tex:SetTexCoord(dx or 0.07, dy or 0.93, dw or 0.07, dh or 0.93)
+		parent.tex:SetTexCoord(dx or 0, dy or 1, dw or 0, dh or 1)
 		parent.tex:SetAllPoints()
 	end
 
-	Utils.addSingleBorders(parent.textureBack, 0, 0, 0, 1)
+	-- Utils.addSingleBorders(parent.textureBack, 0, 0, 0, 1)
 end
 
 -- Register Global --

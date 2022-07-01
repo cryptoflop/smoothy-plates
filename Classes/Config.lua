@@ -91,11 +91,11 @@ SmoothyPlates.getDefaultConfig = function()
 		},
 		['layout'] = {
 			['GENERAL'] = {
-				['scale'] = 1.1
+				['scale'] = 1
 			},
 			['CAST_TEXT'] = {
 				['y'] = -1,
-				['x'] = 2,
+				['x'] = 6,
 				['anchor'] = 'LEFT',
 				['opacity'] = 1,
 				['size'] = 10,
@@ -111,13 +111,13 @@ SmoothyPlates.getDefaultConfig = function()
 				['level'] = 2
 			},
 			['TARGET'] = {
-				['y'] = -8,
+				['y'] = 36,
 				['x'] = 0,
-				['anchor'] = 'BOTTOM',
+				['anchor'] = 'TOP',
 				['opacity'] = 1,
 				['height'] = 40,
-				['width'] = 136,
-				['parent'] = 'Name',
+				['width'] = 128,
+				['parent'] = 'HealthBar',
 				['level'] = 1
 			},
 			['CAST'] = {
@@ -150,12 +150,14 @@ SmoothyPlates.getDefaultConfig = function()
 				['level'] = 1
 			},
 			['NAME'] = {
-				['y'] = 8,
-				['x'] = 0,
-				['anchor'] = 'TOP',
+				['y'] = 6,
+				['x'] = 2,
+				['anchor'] = 'TOPLEFT',
 				['opacity'] = 1,
 				['parent'] = 'HealthBar',
 				['size'] = 12,
+				['height'] = 42,
+				['width'] = 42,
 				['level'] = 1
 			},
 			['RAID_ICON'] = {

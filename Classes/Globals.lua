@@ -1,10 +1,10 @@
 local textures = {
 	TOOLTIP_BORDER = [[Interface\Tooltips\UI-Tooltip-Border]],
-	CHATFRAME_BG = [[Interface\ChatFrame\ChatFrameBackground]],
+	TOOLTIP_BG = [[Interface\Tooltips\UI-Tooltip-Background]],
 	--"Interface\\TargetingFrame\\UI-TargetingFrame-BarFill"
 	--"Interface\RaidFrame\Absorb-Edge"
 	EditorBackground = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\EditorBackground',
-	EDGE_TEX = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\border',
+	EDGE_TEX = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\UI-Tooltip-Border',
 	BAR_TEX = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\Glaze',
 	PRED_BAR_TEX = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\Gloss',
 	HEALER_ICON = 'Interface\\Addons\\SmoothyPlates\\Media\\TGA\\healer',
@@ -40,27 +40,20 @@ _G.SmoothyPlates = {
 			font = 'Interface\\Addons\\\\Media\\Font\\Purista-Medium.ttf',
 			backdrops = {
 				stdbd = {
-					bgFile = textures.CHATFRAME_BG,
-					tile = true,
-					tileSize = 12,
-					edgeFile = textures.EDGE_TEX,
-					edgeSize = 1
+					bgFile = textures.TOOLTIP_BG,
+					edgeFile = textures.TOOLTIP_BORDER,
+					edgeSize = 16,
+					insets = { left = 4, right = 4, top = 4, bottom = 4 }
 				},
 				stdbdne = {
-					bgFile = textures.CHATFRAME_BG,
+					bgFile = textures.TOOLTIP_BG,
 					tile = true,
-					tileSize = 12,
+					tileSize = 16,
 					edgeSize = 0
 				},
-				stdbd_edge = {
+				stdbde = {
 					edgeFile = textures.EDGE_TEX,
-					insets = {
-						left = 1,
-						right = 1,
-						top = 1,
-						bottom = 1
-					},
-					edgeSize = 1
+					edgeSize = 16
 				}
 			}
 		}

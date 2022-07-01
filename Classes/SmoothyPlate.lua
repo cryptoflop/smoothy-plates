@@ -129,8 +129,6 @@ function SmoothyPlate._constructor(frame, debug)
 	this.sp:SetAllPoints(frame)
 	this.sp:SetFrameStrata('BACKGROUND')
 
-	this.sp:SetScale(SP.Vars.perfectScale)
-
 	for k, v in pairs(SmoothyPlate.elements) do
 		this.sp[k] = this['ConstructElement_' .. k](this, this.sp)
 		this.sp[k]:SetAlpha(Layout.GET(v, 'opacity'))
@@ -206,7 +204,7 @@ function SmoothyPlate:ConstructElement_HealthBar(parent)
 	frameH.bar = CreateFrame('StatusBar', nil, frameH)
 	frameH.bar:SetStatusBarTexture(SP.Vars.ui.textures.BAR_TEX)
 	frameH.bar:GetStatusBarTexture():SetHorizTile(false)
-	frameH.bar:SetSize(h - 2, w - 2)
+	frameH.bar:SetSize(h - 6, w - 6)
 	frameH.bar:SetPoint('CENTER', 0, 0)
 	frameH.bar:SetMinMaxValues(1, 10)
 	frameH.bar:SetValue(7)
@@ -225,8 +223,8 @@ function SmoothyPlate:ConstructElement_HealthBar(parent)
 	frameH.back = Utils.createSimpleFrame('$parentBack', frameH, true)
 	frameH.back:SetSize(h, w)
 	frameH.back:SetPoint('CENTER', 0, 0)
-	frameH.back:SetBackdrop(SP.Vars.ui.backdrops.stdbd)
-	frameH.back:SetBackdropColor(0, 0, 0, 0.4)
+	frameH.back:SetBackdrop(SP.Vars.ui.backdrops.stdbde)
+	frameH.back:SetFrameLevel(2)
 
 	return frameH
 end
@@ -246,8 +244,7 @@ function SmoothyPlate:ConstructElement_TargetIndicator(parent)
 	frameT.tex:SetAllPoints()
 
 	-- frameT.tex:SetRotation(-0.785)
-	frameT.tex:SetVertexColor(1, 1, 1)
-	frameT:Hide()
+	frameT.tex:SetVertexColor(0, 0, 0)
 
 	return frameT
 end
@@ -264,20 +261,18 @@ function SmoothyPlate:ConstructElement_PowerBar(parent)
 	frameP.bar:SetStatusBarColor(0.9, 0.9, 0.1, 1)
 	self:Smooth(frameP.bar)
 
-	frameP.back = Utils.createSimpleFrame('$parentBack', frameP, true)
-	frameP.back:SetSize(w, h)
-	frameP.back:SetPoint('CENTER', 0, 0)
-	frameP.back:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
-	frameP.back:SetBackdropColor(0, 0, 0, 0.4)
-
-	Utils.addSingleBorders(frameP.back, 0, 0, 0, 1)
+	-- frameP.back = Utils.createSimpleFrame('$parentBack', frameP, true)
+	-- frameP.back:SetSize(w, h)
+	-- frameP.back:SetPoint('CENTER', 0, 0)
+	-- frameP.back:SetBackdrop(SP.Vars.ui.backdrops.stdbde)
+	-- frameP.back:SetBackdropColor(0, 0, 0, 0.4)
 
 	local hb = Layout.GET('POWER', 'hide border') or 'n'
 	if not (hb == 'n') then
 		frameP.back[hb]:Hide()
 	end
 
-	frameP:SetFrameLevel(4)
+	frameP.bar:SetFrameLevel(4)
 
 	return frameP
 end
@@ -285,19 +280,29 @@ end
 function SmoothyPlate:ConstructElement_CastBar(parent)
 	local frameC = Utils.createSimpleFrame('$parentCastBar', parent, true)
 	local w, h = Layout.HW('CAST')
+	frameC:SetFrameLevel(0)
 
-	Utils.addBorder(frameC)
+	frameC.back = Utils.createSimpleFrame('$parentBo', frameC, true)
+	frameC.back:SetPoint('CENTER', 0, 0)
+	frameC.back:SetBackdrop(SP.Vars.ui.backdrops.stdbdne)
+	frameC.back:SetBackdropColor(0, 0, 0, 0.6)
+	frameC.back:SetSize(w - 6, h - 6)
 
 	frameC.bar = CreateFrame('StatusBar', nil, frameC)
 	frameC.bar:SetStatusBarTexture(SP.Vars.ui.textures.BAR_TEX)
 	frameC.bar:GetStatusBarTexture():SetHorizTile(false)
-	frameC.bar:SetSize(w - 2, h - 2)
+	frameC.bar:SetSize(w - 6, h - 6)
 	frameC.bar:SetPoint('CENTER', 0, 0)
 	frameC.bar:SetStatusBarColor(Utils.fromRGB(255, 255, 0, 255))
-	-- self:Smooth(frameC.bar)
-
+	frameC.bar:SetFrameLevel(1)
 	frameC.bar:SetMinMaxValues(1, 10)
 	frameC.bar:SetValue(7)
+
+	frameC.b = Utils.createSimpleFrame('$parentBo', frameC, true)
+	frameC.b:SetSize(w, h)
+	frameC.b:SetPoint('CENTER', 0, 0)
+	frameC.b:SetBackdrop(SP.Vars.ui.backdrops.stdbde)
+	frameC.b:SetFrameLevel(2)
 
 	w, h = Layout.HW('CAST_ICON')
 	local a, x, y = Layout.AXY('CAST_ICON')
@@ -337,12 +342,10 @@ end
 
 function SmoothyPlate:ConstructElement_Name(parent)
 	local container = Utils.createSimpleFrame('$parentNameContainer', parent, true)
-	-- needs to have size to render text
-	container:SetSize(1, 1)
 
-	local frameN = container:CreateFontString(nil, 'OVERLAY')
-	frameN:SetPoint('CENTER', 0, 0)
-	frameN:SetFont(SP.Vars.ui.font, Layout.GET('NAME', 'size') * Layout.GET('GENERAL', 'scale'), 'OUTLINE')
+	local frameN = container:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
+	frameN:SetPoint('LEFT', 4, 0)
+	frameN:SetFont('GameFontNormal', Layout.GET('NAME', 'size') * Layout.GET('GENERAL', 'scale'), 'OUTLINE')
 	frameN:SetJustifyH('LEFT')
 	frameN:SetShadowOffset(1, -1)
 	frameN:SetTextColor(1, 1, 1)
@@ -412,9 +415,9 @@ function SmoothyPlate:UpdateTargetIndicator()
 	end
 
 	if UnitIsUnit('target', self.unitid) or self.debug then
-		self.sp.TargetIndicator:Show()
+		self.sp.TargetIndicator.tex:SetVertexColor(1, 1, 1)
 	else
-		self.sp.TargetIndicator:Hide()
+		self.sp.TargetIndicator.tex:SetVertexColor(0, 0, 0)
 	end
 end
 
@@ -424,6 +427,9 @@ function SmoothyPlate:UpdateName()
 	end
 
 	local unitName = GetUnitName(self.unitid, false)
+	if unitName:len() > 16 then
+		unitName = unitName:sub(0, 16) .. '...'
+	end
 	self.sp.Name.text:SetText(unitName)
 end
 
